@@ -18,7 +18,7 @@ Hệ thống bán và kích hoạt bản quyền **Locket VIP Pro (Quay 60s & 49
     * 🎁 Filter **Xé Túi Mù May Mắn** trúng tiền thật 10k - 50k quét mã QR ngân hàng thật
     * 🎵 Tặng kèm **Spotify Premium** nghe nhạc bản quyền
     * 👑 Huy hiệu Vương Miện VIP độc quyền
-    * 🔌 Đấu nối trực tiếp hệ thống **Kawaii Locket Gold CTV** (`https://ctv.nodns.vn`) với API Key: `ctv_key_1793546331250_anjgop`
+    * 🔌 Đấu nối trực tiếp hệ thống **Kawaii Locket Gold CTV** (`https://ctv.nodns.vn`); cấu hình API Key riêng trong môi trường deploy.
 * **🍊 LOCKET GOLD THƯỜNG (Tiêu Chuẩn):**
   * **Giá Bán:** Test 3 ngày: **9.000đ** • 6 Tháng: **39.000đ** • 1 Năm: **69.000đ** • Vĩnh Viễn: **99.000đ**
   * **Tính Năng:** Quay video 30s, up ảnh/video album, mở khoá bạn bè, đổi icon, không quảng cáo.

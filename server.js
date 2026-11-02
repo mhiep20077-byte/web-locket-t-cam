@@ -41,14 +41,14 @@ function loadSessions() {
     if (fs.existsSync(SESSIONS_FILE)) {
       return new Set(JSON.parse(fs.readFileSync(SESSIONS_FILE, 'utf8')));
     }
-  } catch (e) {}
+  } catch (e) { }
   return new Set();
 }
 
 function saveSessions(tokenSet) {
   try {
     fs.writeFileSync(SESSIONS_FILE, JSON.stringify([...tokenSet]), 'utf8');
-  } catch (e) {}
+  } catch (e) { }
 }
 
 const activeAdminTokens = loadSessions();
@@ -131,7 +131,7 @@ function loadCtvCustomers() {
     if (fs.existsSync(CTV_CUSTOMERS_FILE)) {
       return JSON.parse(fs.readFileSync(CTV_CUSTOMERS_FILE, 'utf8'));
     }
-  } catch (err) {}
+  } catch (err) { }
   return [];
 }
 
@@ -139,7 +139,7 @@ function saveCtvCustomers(custs) {
   try {
     fs.writeFileSync(CTV_CUSTOMERS_FILE, JSON.stringify(custs, null, 2), 'utf8');
     return true;
-  } catch (err) {}
+  } catch (err) { }
   return false;
 }
 
@@ -148,7 +148,7 @@ function loadCtvDeposits() {
     if (fs.existsSync(CTV_DEPOSITS_FILE)) {
       return JSON.parse(fs.readFileSync(CTV_DEPOSITS_FILE, 'utf8'));
     }
-  } catch (err) {}
+  } catch (err) { }
   return [];
 }
 
@@ -156,7 +156,7 @@ function saveCtvDeposits(deps) {
   try {
     fs.writeFileSync(CTV_DEPOSITS_FILE, JSON.stringify(deps, null, 2), 'utf8');
     return true;
-  } catch (err) {}
+  } catch (err) { }
   return false;
 }
 
@@ -191,6 +191,41 @@ function cleanLocketUsername(str) {
     u = u.split('locket.camera/')[1].split(/[/?#]/)[0];
   }
   return u.replace(/[^a-zA-Z0-9._-]/g, '');
+}
+
+function normalizePaymentText(value) {
+  return String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+function getConfiguredDnsUrl(username, configuredLink, fallbackLink) {
+  const encodedUsername = encodeURIComponent(cleanLocketUsername(username));
+  const linkTemplate = String(configuredLink || fallbackLink).trim();
+  if (linkTemplate.includes('{username}')) {
+    return linkTemplate.replace(/\{username\}/gi, encodedUsername);
+  }
+
+  try {
+    const configuredUrl = new URL(linkTemplate);
+    const pathParts = configuredUrl.pathname.split('/').filter(Boolean);
+    const finalPart = pathParts[pathParts.length - 1]?.toLowerCase();
+
+    if (pathParts.length === 0 || configuredUrl.pathname.endsWith('/') || finalPart === 'dns') {
+      if (finalPart === 'dns') pathParts.pop();
+      pathParts.push(encodedUsername);
+    } else {
+      pathParts[pathParts.length - 1] = encodedUsername;
+    }
+
+    configuredUrl.pathname = `/${pathParts.join('/')}`;
+    return configuredUrl.toString();
+  } catch (err) {
+    const fallbackUrl = new URL(fallbackLink);
+    return `${fallbackUrl.origin}/${encodedUsername}`;
+  }
+}
+
+function getRegularDnsUrl(username, settings = loadSettings()) {
+  return getConfiguredDnsUrl(username, settings.dnsLinkRegular, 'https://doh.2707226.xyz/{username}');
 }
 
 // ============================================================
@@ -310,6 +345,8 @@ app.get('/api/config/public', (req, res) => {
     supportGroupUrl: settings.supportGroupUrl || 'https://zalo.me/0386116104',
     zaloGroup1Url: settings.zaloGroup1Url || 'https://zalo.me/g/shprtxgdepc6wscxwmtg',
     zaloGroup2Url: settings.zaloGroup2Url || 'https://zalo.me/g/qyke3ds1tqzjwudjznrc',
+    dnsLinkRegular: settings.dnsLinkRegular || 'https://locket.2707226.xyz/dns',
+    dnsLinkVip: settings.dnsLinkVip || 'https://locket.2707226.xyz/dns',
     marqueeNotice: settings.marqueeNotice || '',
     bankInfo: settings.bankInfo || {
       bankId: 'VPBANK',
@@ -355,7 +392,7 @@ app.get('/api/user/lookup', async (req, res) => {
   }
 
   const settings = loadSettings();
-  const kawaiiKey = settings.apiConfig?.kawaiiApiKey || 'ctv_key_1793546331250_anjgop';
+  const kawaiiKey = settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
 
   console.log(`[LOOKUP] Đang tra cứu tài khoản: @${username}`);
 
@@ -585,7 +622,7 @@ async function executeActivation(order) {
 
   if (order.planType === 'vip') {
     // KÍCH HOẠT LOCKET VIP + 49 FILTER QUA KAWAII CTV
-    const apiKey = apiConfig.kawaiiApiKey || 'ctv_key_1793546331250_anjgop';
+    const apiKey = apiConfig.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
     const apiUrl = 'https://ctv.nodns.vn/api/v1/ctv/gold';
     const pkg = order.packageKey || 'filter_1year';
 
@@ -610,7 +647,11 @@ async function executeActivation(order) {
         order.status = 'ACTIVATED';
         order.uid = resData.data?.uid || order.uid || null;
         order.expiresAt = resData.data?.expiresAt || order.expiresAt || null;
-        order.mobileconfigUrl = resData.data?.mobileconfigUrl || resData.mobileconfigUrl || null;
+        order.mobileconfigUrl = resData.data?.mobileconfigUrl || resData.mobileconfigUrl || getConfiguredDnsUrl(
+          order.username,
+          settings.dnsLinkVip,
+          'https://locket.2707226.xyz/{username}'
+        );
         order.filterShortUrl = resData.data?.filterShortUrl || resData.filterShortUrl || null;
         order.activationLog = {
           success: true,
@@ -665,7 +706,7 @@ async function executeActivation(order) {
           order.status = 'ACTIVATED';
           const uidStr = resData.data?.uid?.uidString || resData.data?.uid?.uid || resData.data?.uid || resData.uid || null;
           order.uid = typeof uidStr === 'string' ? uidStr : (uidStr?.uidString || null);
-          order.mobileconfigUrl = `/profile?username=${encodeURIComponent(order.username)}`;
+          order.mobileconfigUrl = getRegularDnsUrl(order.username, settings);
           order.activationLog = {
             success: true,
             provider: 'CUCAM_DNS',
@@ -697,12 +738,14 @@ async function processIncomingTransaction(tx) {
 
   // 1. Kiểm tra đơn hàng khách mua lẻ
   const orders = loadOrders();
+  const normalizedDescription = normalizePaymentText(desc);
   const matchedOrder = orders.find(o => {
-    if (o.status === 'ACTIVATED') return false;
+    if (o.status === 'ACTIVATED' || o.status === 'CANCELLED') return false;
     const code = (o.orderCode || '').toUpperCase();
     const user = (o.username || '').toUpperCase();
     const isAmountOk = Number(amount) >= Number(o.amount) * 0.95; // Cho phép dung sai nhỏ nếu có phí
-    return isAmountOk && (desc.includes(code) || (user && desc.includes(user)));
+    const hasOrderCode = code && normalizedDescription.includes(normalizePaymentText(code));
+    return isAmountOk && (hasOrderCode || (user && desc.includes(user)));
   });
 
   if (matchedOrder) {
@@ -712,8 +755,8 @@ async function processIncomingTransaction(tx) {
     matchedOrder.paidAt = new Date().toISOString();
 
     const settings = loadSettings();
-    const shouldAuto = matchedOrder.planType === 'vip' 
-      ? settings.apiConfig?.autoActivateVIP !== false 
+    const shouldAuto = matchedOrder.planType === 'vip'
+      ? settings.apiConfig?.autoActivateVIP !== false
       : settings.apiConfig?.autoActivateRegular !== false;
 
     if (shouldAuto) {
@@ -826,8 +869,8 @@ async function processIncomingTransaction(tx) {
       createdAt: new Date().toISOString()
     };
 
-    const shouldAuto = planType === 'vip' 
-      ? settings.apiConfig?.autoActivateVIP !== false 
+    const shouldAuto = planType === 'vip'
+      ? settings.apiConfig?.autoActivateVIP !== false
       : settings.apiConfig?.autoActivateRegular !== false;
 
     if (shouldAuto) {
@@ -916,7 +959,9 @@ app.get('/check-payment', (req, res) => {
       username: matched.username,
       locketStatus: matched.status === 'ACTIVATED' ? 'success' : 'pending',
       uid: matched.uid || null,
-      mobileconfigUrl: matched.mobileconfigUrl || `/profile?username=${encodeURIComponent(username)}`,
+      mobileconfigUrl: matched.mobileconfigUrl || (matched.planType === 'regular'
+        ? getRegularDnsUrl(username)
+        : `/profile?username=${encodeURIComponent(username)}`),
       filterShortUrl: matched.filterShortUrl || null
     });
   }
@@ -962,7 +1007,7 @@ app.all([
   const username = cleanLocketUsername(rawUser);
   const uid = req.query.uid || req.body?.uid || '';
   const settings = loadSettings();
-  const cucamKey = settings.apiConfig?.cucamApiKey || process.env.LOCKET_SECRET_KEY || 'sk_a6f8887c53d6baa3f90a7929e85b693b7dddc82bfd4ecfb233efa75dd7551df7';
+  const cucamKey = settings.apiConfig?.cucamApiKey || process.env.LOCKET_SECRET_KEY || '';
   const cucamBase = settings.apiConfig?.cucamApiBase || 'https://locket.2707226.xyz';
 
   let resolvedUid = uid;
@@ -1118,7 +1163,7 @@ app.get('/api/admin/overview', requireAdmin, async (req, res) => {
   let kawaiiInfo = null;
   try {
     const kRes = await fetch('https://ctv.nodns.vn/api/v1/ctv/me', {
-      headers: { 'x-api-key': settings.apiConfig?.kawaiiApiKey || 'ctv_key_1793546331250_anjgop' }
+      headers: { 'x-api-key': settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '' }
     });
     if (kRes.ok) {
       const kData = await kRes.json();
@@ -1158,7 +1203,7 @@ app.post('/api/admin/settings', requireAdmin, (req, res) => {
 
   const current = loadSettings();
   const merged = { ...current, ...newSettings };
-  
+
   if (saveSettings(merged)) {
     console.log('[ADMIN] ✅ Cập nhật settings thành công');
     return res.json({ ok: true, message: 'Đã lưu cấu hình thành công!' });
@@ -1203,6 +1248,28 @@ app.get('/api/admin/orders', requireAdmin, (req, res) => {
   res.json({ ok: true, orders: orders });
 });
 
+app.post('/api/admin/order/mark-paid', requireAdmin, (req, res) => {
+  const { orderId } = req.body || {};
+  const orders = loadOrders();
+  const order = orders.find(o => o.id === orderId || o.orderCode === orderId);
+
+  if (!order) {
+    return res.status(404).json({ ok: false, message: 'Không tìm thấy đơn hàng!' });
+  }
+  if (order.status !== 'PENDING') {
+    return res.status(400).json({ ok: false, message: 'Chỉ xác nhận thanh toán cho đơn đang chờ thanh toán!' });
+  }
+
+  order.status = 'PAID';
+  order.paymentRef = `ADMIN_${Date.now()}`;
+  order.paidAt = new Date().toISOString();
+  if (!saveOrders(orders)) {
+    return res.status(500).json({ ok: false, message: 'Không thể lưu trạng thái đơn hàng!' });
+  }
+
+  return res.json({ ok: true, message: 'Đã xác nhận đã nhận tiền. Có thể kích hoạt đơn hàng.', order });
+});
+
 // Kích hoạt thủ công 1-Click
 app.post('/api/admin/order/manual-activate', requireAdmin, async (req, res) => {
   const { orderId } = req.body || {};
@@ -1211,6 +1278,9 @@ app.post('/api/admin/order/manual-activate', requireAdmin, async (req, res) => {
 
   if (!order) {
     return res.status(404).json({ ok: false, message: 'Không tìm thấy đơn hàng!' });
+  }
+  if (order.status !== 'PAID') {
+    return res.status(400).json({ ok: false, message: 'Cần xác nhận đã nhận thanh toán trước khi kích hoạt!' });
   }
 
   const result = await executeActivation(order);
@@ -1258,7 +1328,7 @@ app.post('/api/admin/order/delete', requireAdmin, (req, res) => {
 app.post('/api/admin/test-kawaii', requireAdmin, async (req, res) => {
   const { apiKey } = req.body || {};
   const settings = loadSettings();
-  const keyToTest = apiKey || settings.apiConfig?.kawaiiApiKey || 'ctv_key_1793546331250_anjgop';
+  const keyToTest = apiKey || settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
 
   try {
     const kRes = await fetch('https://ctv.nodns.vn/api/v1/ctv/me', {
@@ -1346,7 +1416,7 @@ app.post('/api/admin/upload-image', requireAdmin, (req, res) => {
       fs.mkdirSync(imagesDir, { recursive: true });
     }
 
-    const uniqueName = `filter-${Date.now()}-${Math.floor(Math.random()*1000)}${ext}`;
+    const uniqueName = `filter-${Date.now()}-${Math.floor(Math.random() * 1000)}${ext}`;
     const targetPath = path.join(imagesDir, uniqueName);
 
     const buffer = Buffer.from(cleanBase64, 'base64');
@@ -1514,6 +1584,9 @@ app.get('/api/ctv/me', requireCtv, (req, res) => {
     wholesalePlans: []
   };
 
+  ctvSettings.dnsLinkRegular = settings.dnsLinkRegular || 'https://locket.2707226.xyz/dns';
+  ctvSettings.dnsLinkVip = settings.dnsLinkVip || 'https://locket.2707226.xyz/dns';
+
   return res.json({
     ok: true,
     user: {
@@ -1583,7 +1656,7 @@ app.get('/api/ctv/lookup-user', requireCtv, async (req, res) => {
   }
 
   const settings = loadSettings();
-  const kawaiiKey = settings.apiConfig?.kawaiiApiKey || 'ctv_key_1793546331250_anjgop';
+  const kawaiiKey = settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
   const cucamKey = settings.apiConfig?.cucamApiKey || '';
   const cucamBase = settings.apiConfig?.cucamApiBase || 'https://locket.2707226.xyz';
 
@@ -1607,7 +1680,7 @@ app.get('/api/ctv/lookup-user', requireCtv, async (req, res) => {
         }
       });
     }
-  } catch (e) {}
+  } catch (e) { }
 
   // 2. Tra cứu qua Cụ Cam
   if (cucamKey) {
@@ -1629,7 +1702,7 @@ app.get('/api/ctv/lookup-user', requireCtv, async (req, res) => {
           }
         });
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // 3. Fallback locket.cam web
@@ -1655,7 +1728,7 @@ app.get('/api/ctv/lookup-user', requireCtv, async (req, res) => {
         });
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 
   return res.status(404).json({
     ok: false,
@@ -1706,7 +1779,7 @@ app.post('/api/ctv/activate', requireCtv, async (req, res) => {
   if (isVip) {
     // KÍCH HOẠT QUA KAWAII (VIP 49+ Filter Camera AI)
     try {
-      const kawaiiKey = settings.apiConfig?.kawaiiApiKey || 'ctv_key_1793546331250_anjgop';
+      const kawaiiKey = settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
       const pkg = planId === 'vip_lifetime' ? 'filter_lifetime' : (planId === 'vip_2y' ? 'filter_2year' : 'filter_1year');
       const kwRes = await fetch('https://ctv.nodns.vn/api/v1/ctv/gold', {
         method: 'POST',
@@ -1719,8 +1792,12 @@ app.post('/api/ctv/activate', requireCtv, async (req, res) => {
       if (kwRes.ok && (kwData.status === 'success' || kwData.ok || kwData.data)) {
         activationSuccess = true;
         resolvedUid = kwData.data?.uid || resolvedUid;
-        mobileconfigUrl = kwData.data?.mobileconfigUrl || null;
-        filterShortUrl = kwData.data?.filterShortUrl || null;
+        mobileconfigUrl = kwData.data?.mobileconfigUrl || kwData.mobileconfigUrl || getConfiguredDnsUrl(
+          cleanUser,
+          settings.dnsLinkVip,
+          'https://locket.2707226.xyz/{username}'
+        );
+        filterShortUrl = kwData.data?.filterShortUrl || kwData.filterShortUrl || null;
         apiLog = { provider: 'KAWAII_VIP', success: true, response: kwData };
       } else {
         apiLog = { provider: 'KAWAII_VIP', success: false, error: kwData.message || `HTTP ${kwRes.status}` };

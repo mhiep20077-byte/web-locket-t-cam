@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>Admin Dashboard — Quản Trị Hệ Thống Locket VIP &amp; Gold</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%99%EF%B8%8F%3C/text%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%99%EF%B8%8F%3C/text%3E%3C/svg%3E">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <style>
@@ -28,123 +32,420 @@
       --radius: 14px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Nunito', sans-serif; background: var(--bg-dark); color: var(--text); min-height: 100vh; display: flex; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+    }
 
     /* Login Modal */
     #login-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: #090B10; z-index: 9999;
-      display: flex; align-items: center; justify-content: center; padding: 20px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #090B10;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
+
     .login-box {
-      width: 100%; max-width: 400px; background: var(--bg-card);
-      border: 1px solid var(--border); border-radius: 24px; padding: 32px;
-      text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      width: 100%;
+      max-width: 400px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
     }
-    .login-box h2 { font-size: 1.5rem; margin-bottom: 8px; }
+
+    .login-box h2 {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+
     .login-input {
-      width: 100%; height: 48px; border-radius: 12px; background: rgba(0,0,0,0.5);
-      border: 1.5px solid var(--border); color: #fff; padding: 0 16px; font-size: 1rem;
-      margin: 18px 0; outline: none; text-align: center;
+      width: 100%;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1.5px solid var(--border);
+      color: #fff;
+      padding: 0 16px;
+      font-size: 1rem;
+      margin: 18px 0;
+      outline: none;
+      text-align: center;
     }
-    .login-input:focus { border-color: var(--gold); }
+
+    .login-input:focus {
+      border-color: var(--gold);
+    }
+
     .btn-login {
-      width: 100%; height: 48px; border-radius: 12px; border: none;
+      width: 100%;
+      height: 48px;
+      border-radius: 12px;
+      border: none;
       background: linear-gradient(135deg, var(--gold) 0%, #D97706 100%);
-      color: #000; font-weight: 800; font-size: 1rem; cursor: pointer;
+      color: #000;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
     }
 
     /* Layout */
     .admin-sidebar {
-      width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border);
-      padding: 24px 16px; display: flex; flex-direction: column; flex-shrink: 0;
+      width: 260px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
     }
-    .admin-main { flex: 1; padding: 28px 36px; overflow-y: auto; height: 100vh; }
 
-    .sidebar-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; padding: 0 8px; }
-    .sidebar-brand b { font-size: 1.2rem; background: linear-gradient(90deg, #fff, var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .admin-main {
+      flex: 1;
+      padding: 28px 36px;
+      overflow-y: auto;
+      height: 100vh;
+    }
 
-    .nav-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+      padding: 0 8px;
+    }
+
+    .sidebar-brand b {
+      font-size: 1.2rem;
+      background: linear-gradient(90deg, #fff, var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
     .nav-item button {
-      width: 100%; padding: 12px 16px; border-radius: 10px; border: none; background: transparent;
-      color: var(--text-sub); font-size: 0.95rem; font-weight: 700; text-align: left;
-      cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s;
-    }
-    .nav-item button:hover { background: rgba(255,255,255,0.05); color: #fff; }
-    .nav-item button.active { background: rgba(245, 158, 11, 0.15); color: var(--gold); border: 1px solid rgba(245, 158, 11, 0.3); }
-
-    .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border); }
-    .btn-logout { width: 100%; padding: 10px; border-radius: 10px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #F87171; font-weight: 700; cursor: pointer; }
-
-    /* Cards & Stats */
-    .page-title { font-size: 1.6rem; font-weight: 900; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 28px; }
-    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
-    .stat-card .label { font-size: 0.85rem; color: var(--text-sub); font-weight: 700; margin-bottom: 6px; }
-    .stat-card .val { font-family: 'Space Grotesk', monospace; font-size: 1.8rem; font-weight: 800; color: #fff; }
-
-    .panel-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; }
-    .panel-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
-
-    /* Form Inputs */
-    .form-group { margin-bottom: 18px; }
-    .form-label { display: block; font-size: 0.9rem; font-weight: 800; margin-bottom: 8px; color: #CBD5E1; }
-    .form-input, .form-select, .form-textarea {
-      width: 100%; padding: 12px 16px; border-radius: 10px; background: rgba(0,0,0,0.4);
-      border: 1px solid var(--border); color: #fff; font-family: inherit; font-size: 0.95rem; outline: none;
-    }
-    .form-input:focus, .form-textarea:focus { border-color: var(--gold); }
-    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-
-    .btn-save {
-      padding: 12px 28px; border-radius: 10px; border: none; background: linear-gradient(135deg, var(--gold) 0%, #D97706 100%);
-      color: #000; font-weight: 900; font-size: 0.95rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
-    }
-    .btn-save:hover { filter: brightness(1.1); transform: translateY(-1px); }
-
-    .btn-action-sm {
-      padding: 6px 12px; border-radius: 8px; border: none; font-size: 0.82rem; font-weight: 800;
-      cursor: pointer; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
-    }
-    .btn-act-activate { background: linear-gradient(135deg, #10B981, #059669); color: #fff; }
-    .btn-act-delete { background: rgba(239,68,68,0.15); color: #F87171; border: 1px solid rgba(239,68,68,0.3); }
-
-    .btn-plan-tab {
-      padding: 7px 16px; border-radius: 999px; border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.05); color: var(--text-sub); font-weight: 700;
-      font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
       transition: all 0.2s;
     }
-    .btn-plan-tab:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
-    .btn-plan-tab.active { background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.5); color: var(--gold); }
+
+    .nav-item button:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+
+    .nav-item button.active {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--gold);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-logout {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #F87171;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Cards & Stats */
+    .page-title {
+      font-size: 1.6rem;
+      font-weight: 900;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .stat-card .label {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .stat-card .val {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .panel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .panel-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    /* Form Inputs */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #CBD5E1;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus {
+      border-color: var(--gold);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .btn-save {
+      padding: 12px 28px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, var(--gold) 0%, #D97706 100%);
+      color: #000;
+      font-weight: 900;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-save:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-action-sm {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+
+    .btn-act-activate {
+      background: linear-gradient(135deg, #10B981, #059669);
+      color: #fff;
+    }
+
+    .btn-act-delete {
+      background: rgba(239, 68, 68, 0.15);
+      color: #F87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-plan-tab {
+      padding: 7px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-sub);
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-plan-tab:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .btn-plan-tab.active {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: rgba(245, 158, 11, 0.5);
+      color: var(--gold);
+    }
 
     /* Table */
-    .table-responsive { width: 100%; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
-    th { padding: 12px 14px; background: rgba(255,255,255,0.03); color: var(--text-sub); font-weight: 800; border-bottom: 1px solid var(--border); }
-    td { padding: 14px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
-    tr:hover td { background: rgba(255,255,255,0.02); }
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
 
-    .badge-status { padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
-    .st-activated { background: rgba(16,185,129,0.15); color: #10B981; border: 1px solid rgba(16,185,129,0.3); }
-    .st-pending { background: rgba(245,158,11,0.15); color: #FBBF24; border: 1px solid rgba(245,158,11,0.3); }
-    .st-paid { background: rgba(139,92,246,0.15); color: #C084FC; border: 1px solid rgba(139,92,246,0.3); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-sub);
+      font-weight: 800;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      vertical-align: middle;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .badge-status {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .st-activated {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10B981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .st-pending {
+      background: rgba(245, 158, 11, 0.15);
+      color: #FBBF24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .st-paid {
+      background: rgba(139, 92, 246, 0.15);
+      color: #C084FC;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
 
     /* Toast */
     #admin-toast {
-      position: fixed; bottom: 24px; right: 24px; padding: 14px 20px;
-      border-radius: 12px; background: #1E293B; border: 1px solid var(--border);
-      color: #fff; font-weight: 700; font-size: 0.9rem; z-index: 10000;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; align-items: center; gap: 10px;
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      background: #1E293B;
+      border: 1px solid var(--border);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      z-index: 10000;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      gap: 10px;
     }
+
     body {
       -webkit-user-select: none;
       -moz-user-select: none;
       -ms-user-select: none;
       user-select: none;
     }
-    input, textarea, [contenteditable="true"], code, pre {
+
+    input,
+    textarea,
+    [contenteditable="true"],
+    code,
+    pre {
       -webkit-user-select: text !important;
       -moz-user-select: text !important;
       -ms-user-select: text !important;
@@ -153,6 +454,7 @@
   </style>
   <script src="js/security-shield.js"></script>
 </head>
+
 <body>
 
   <!-- Login Modal -->
@@ -161,12 +463,13 @@
       <div style="font-size: 40px; margin-bottom: 12px;">👑</div>
       <h2>Quản Trị Hệ Thống</h2>
       <p style="color: var(--text-sub); font-size: 0.9rem;">Nhập mật khẩu Admin để truy cập trung tâm điều khiển</p>
-      
+
       <input type="password" id="admin-pass-input" class="login-input" placeholder="Mật khẩu Admin..." autofocus>
       <button type="button" class="btn-login" onclick="executeAdminLogin()">
         <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập
       </button>
-      <p id="login-error" style="color: var(--rose); font-size: 0.85rem; margin-top: 14px; display: none; font-weight: 700;"></p>
+      <p id="login-error"
+        style="color: var(--rose); font-size: 0.85rem; margin-top: 14px; display: none; font-weight: 700;"></p>
     </div>
   </div>
 
@@ -222,6 +525,11 @@
         </button>
       </li>
       <li class="nav-item">
+        <button type="button" onclick="switchAdminTab('tab-dns-links')">
+          <i class="fa-solid fa-link"></i> Link DNS Thường &amp; VIP
+        </button>
+      </li>
+      <li class="nav-item">
         <button type="button" onclick="switchAdminTab('tab-settings')">
           <i class="fa-solid fa-sliders"></i> Cài Đặt Website
         </button>
@@ -229,7 +537,8 @@
     </ul>
 
     <div class="sidebar-footer">
-      <a href="index.html" target="_blank" style="display: flex; align-items: center; gap: 8px; color: var(--text-sub); text-decoration: none; font-size: 13px; font-weight: 700; margin-bottom: 12px; padding: 4px;">
+      <a href="index.html" target="_blank"
+        style="display: flex; align-items: center; gap: 8px; color: var(--text-sub); text-decoration: none; font-size: 13px; font-weight: 700; margin-bottom: 12px; padding: 4px;">
         <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem Trang Khách
       </a>
       <button type="button" class="btn-logout" onclick="executeLogout()">
@@ -274,7 +583,8 @@
       </div>
 
       <!-- Live API Kawaii Balance Box -->
-      <div class="panel-card" style="border-color: rgba(139, 92, 246, 0.4); background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(20, 24, 36, 0.95) 100%);">
+      <div class="panel-card"
+        style="border-color: rgba(139, 92, 246, 0.4); background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(20, 24, 36, 0.95) 100%);">
         <div class="panel-title" style="color: var(--vip);">
           <i class="fa-solid fa-crown"></i> Số Dư &amp; Lượt API Kawaii CTV (ctv.nodns.vn)
         </div>
@@ -303,7 +613,8 @@
     <div id="tab-orders" class="admin-tab-pane" style="display: none;">
       <div class="page-title">
         <span>Quản Lý Đơn Hàng &amp; Kích Hoạt API</span>
-        <button type="button" class="btn-save" id="btn-reload-orders" style="padding: 8px 16px; font-size: 13px;" onclick="loadOrdersList(true)">
+        <button type="button" class="btn-save" id="btn-reload-orders" style="padding: 8px 16px; font-size: 13px;"
+          onclick="loadOrdersList(true)">
           <i class="fa-solid fa-rotate" id="icon-reload-orders"></i> Tải Lại Danh Sách
         </button>
       </div>
@@ -398,7 +709,8 @@
         <div class="form-group">
           <label class="form-label">Tiền Tố Nội Dung Chuyển Khoản (Memo Prefix):</label>
           <input type="text" id="bank-memo-prefix" class="form-input" placeholder="VIPCAM">
-          <small style="color: var(--text-sub); display: block; margin-top: 6px;">Ví dụ: Khách quét mã sẽ có nội dung là <code>VIPCAM1234</code></small>
+          <small style="color: var(--text-sub); display: block; margin-top: 6px;">Ví dụ: Khách quét mã sẽ có nội dung là
+            <code>VIPCAM1234</code></small>
         </div>
       </div>
     </div>
@@ -421,7 +733,8 @@
           <label class="form-label">API Key CTV Kawaii (Gói VIP 49+ Filter):</label>
           <div style="display: flex; gap: 10px;">
             <input type="text" id="api-kawaii-key" class="form-input" placeholder="ctv_key_...">
-            <button type="button" class="btn-save" style="white-space: nowrap; padding: 0 20px;" onclick="testKawaiiKey()">
+            <button type="button" class="btn-save" style="white-space: nowrap; padding: 0 20px;"
+              onclick="testKawaiiKey()">
               <i class="fa-solid fa-vial"></i> Kiểm Tra Key
             </button>
           </div>
@@ -447,7 +760,9 @@
           <label class="form-label">Secret Key Cụ Cam (sk_...):</label>
           <div style="display: flex; gap: 10px;">
             <input type="text" id="api-cucam-key" class="form-input" placeholder="sk_...">
-            <button type="button" class="btn-save" style="white-space: nowrap; padding: 0 20px; background: linear-gradient(135deg, #F59E0B, #D97706);" onclick="testCucamKey()">
+            <button type="button" class="btn-save"
+              style="white-space: nowrap; padding: 0 20px; background: linear-gradient(135deg, #F59E0B, #D97706);"
+              onclick="testCucamKey()">
               <i class="fa-solid fa-vial"></i> Kiểm Tra Key
             </button>
           </div>
@@ -458,7 +773,8 @@
         </div>
         <div class="form-group">
           <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: #fff; font-weight: 700;">
-            <input type="checkbox" id="auto-activate-regular" style="width: 18px; height: 18px; accent-color: var(--gold);">
+            <input type="checkbox" id="auto-activate-regular"
+              style="width: 18px; height: 18px; accent-color: var(--gold);">
             <span>Tự động kích hoạt gói Thường khi có tiền về</span>
           </label>
         </div>
@@ -470,9 +786,11 @@
           <i class="fa-solid fa-webhook"></i> Hướng Dẫn Cấu Hình Webhook Ngân Hàng (Tự Động 100%)
         </div>
         <p style="color: var(--text-sub); font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px;">
-          Để hệ thống tự động duyệt đơn và cấp DNS ngay khi khách thanh toán thành công, hãy gắn link Webhook này vào tài khoản Casso.vn hoặc SePay.vn của bạn:
+          Để hệ thống tự động duyệt đơn và cấp DNS ngay khi khách thanh toán thành công, hãy gắn link Webhook này vào
+          tài khoản Casso.vn hoặc SePay.vn của bạn:
         </p>
-        <div style="background: rgba(0,0,0,0.4); padding: 12px 16px; border-radius: 10px; font-family: monospace; font-size: 0.9rem; color: #FDE68A; margin-bottom: 10px;">
+        <div
+          style="background: rgba(0,0,0,0.4); padding: 12px 16px; border-radius: 10px; font-family: monospace; font-size: 0.9rem; color: #FDE68A; margin-bottom: 10px;">
           🔗 Webhook Casso: <code>https://ten-mien-cua-ban/webhook/casso</code><br>
           🔗 Webhook SePay: <code>https://ten-mien-cua-ban/webhook/sepay</code>
         </div>
@@ -512,11 +830,13 @@
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Link Nhóm Zalo 1 (Mới Nhất):</label>
-            <input type="text" id="site-zalo-group1" class="form-input" placeholder="https://zalo.me/g/shprtxgdepc6wscxwmtg">
+            <input type="text" id="site-zalo-group1" class="form-input"
+              placeholder="https://zalo.me/g/shprtxgdepc6wscxwmtg">
           </div>
           <div class="form-group">
             <label class="form-label">Link Nhóm Zalo 2 (Dự Phòng):</label>
-            <input type="text" id="site-zalo-group2" class="form-input" placeholder="https://zalo.me/g/qyke3ds1tqzjwudjznrc">
+            <input type="text" id="site-zalo-group2" class="form-input"
+              placeholder="https://zalo.me/g/qyke3ds1tqzjwudjznrc">
           </div>
         </div>
         <div class="form-group">
@@ -536,10 +856,38 @@
             <input type="password" id="new-admin-pass" class="form-input" placeholder="Nhập mật khẩu mới...">
           </div>
           <div class="form-group" style="display: flex; align-items: flex-end;">
-            <button type="button" class="btn-save" style="background: linear-gradient(135deg, #EF4444, #B91C1C); color: #fff;" onclick="changeAdminPassword()">
+            <button type="button" class="btn-save"
+              style="background: linear-gradient(135deg, #EF4444, #B91C1C); color: #fff;"
+              onclick="changeAdminPassword()">
               <i class="fa-solid fa-shield"></i> Cập Nhật Mật Khẩu
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-dns-links" class="admin-tab-pane" style="display: none;">
+      <div class="page-title">
+        <span>Cấu Hình Link DNS</span>
+        <button type="button" class="btn-save" onclick="saveDnsLinks()">
+          <i class="fa-solid fa-floppy-disk"></i> Lưu Link DNS
+        </button>
+      </div>
+
+      <div class="panel-card">
+        <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 18px;">
+          Dùng <code>{username}</code> tại vị trí tên tài khoản trong link. Nếu nhập link có đuôi <code>/dns</code> hoặc
+          username mẫu, hệ thống sẽ thay phần cuối bằng username của khách.
+        </p>
+        <div class="form-group">
+          <label class="form-label">Link DNS Locket Thường (Cụ Cam):</label>
+          <input type="url" id="site-dns-regular" class="form-input" placeholder="https://doh.2707226.xyz/{username}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Link DNS Locket VIP (Kawaii):</label>
+          <input type="url" id="site-dns-vip" class="form-input" placeholder="https://ten-mien-vip.example/{username}">
+          <small style="color: var(--text-sub); display: block; margin-top: 6px;">Link Kawaii trả về khi kích hoạt được
+            ưu tiên; link này dùng làm dự phòng.</small>
         </div>
       </div>
     </div>
@@ -556,24 +904,30 @@
           <i class="fa-solid fa-cloud-arrow-up"></i> Thêm Ảnh Filter Mới Vào Showroom
         </div>
         <p style="color: var(--text-sub); font-size: 0.88rem; margin-bottom: 18px;">
-          Tải ảnh chụp dọc (tỷ lệ 9:16 như story Locket) từ máy tính/điện thoại hoặc dán link ảnh để khách vuốt xem trên trang chủ
+          Tải ảnh chụp dọc (tỷ lệ 9:16 như story Locket) từ máy tính/điện thoại hoặc dán link ảnh để khách vuốt xem trên
+          trang chủ
         </p>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Chọn tệp ảnh từ máy (Tự động tải lên):</label>
-            <input type="file" id="new-gallery-file" accept="image/*" class="form-input" onchange="handleGalleryFileUpload(event)" style="padding: 8px;">
+            <input type="file" id="new-gallery-file" accept="image/*" class="form-input"
+              onchange="handleGalleryFileUpload(event)" style="padding: 8px;">
           </div>
           <div class="form-group">
             <label class="form-label">Hoặc nhập link ảnh (URL):</label>
-            <input type="text" id="new-gallery-url" class="form-input" placeholder="images/filter-photobooth.jpg hoặc https://..." oninput="handleGalleryUrlChange(this.value)">
+            <input type="text" id="new-gallery-url" class="form-input"
+              placeholder="images/filter-photobooth.jpg hoặc https://..." oninput="handleGalleryUrlChange(this.value)">
           </div>
         </div>
 
         <!-- Khung xem trước ảnh preview -->
-        <div id="gallery-preview-box" style="display: none; margin-bottom: 16px; padding: 14px; background: rgba(0,0,0,0.3); border: 1px dashed var(--border-subtle); border-radius: var(--radius-md); text-align: center;">
-          <img id="gallery-preview-img" src="" alt="Preview" style="max-height: 240px; border-radius: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.6);">
-          <div style="font-size: 12px; color: var(--emerald); margin-top: 6px; font-weight: 700;">✓ Ảnh đã sẵn sàng</div>
+        <div id="gallery-preview-box"
+          style="display: none; margin-bottom: 16px; padding: 14px; background: rgba(0,0,0,0.3); border: 1px dashed var(--border-subtle); border-radius: var(--radius-md); text-align: center;">
+          <img id="gallery-preview-img" src="" alt="Preview"
+            style="max-height: 240px; border-radius: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.6);">
+          <div style="font-size: 12px; color: var(--emerald); margin-top: 6px; font-weight: 700;">✓ Ảnh đã sẵn sàng
+          </div>
         </div>
 
         <div class="form-row">
@@ -589,21 +943,26 @@
 
         <div class="form-group" style="margin-bottom: 20px;">
           <label class="form-label">Mô tả ngắn về Filter này:</label>
-          <input type="text" id="new-gallery-caption" class="form-input" placeholder="Ví dụ: Chụp ảnh 4 khung hình cute phong cách Y2K Hàn Quốc">
+          <input type="text" id="new-gallery-caption" class="form-input"
+            placeholder="Ví dụ: Chụp ảnh 4 khung hình cute phong cách Y2K Hàn Quốc">
         </div>
 
-        <button type="button" class="btn-save" style="background: linear-gradient(135deg, #8B5CF6, #6D28D9); color: #fff; width: auto; padding: 12px 28px;" onclick="submitNewGalleryItem()">
+        <button type="button" class="btn-save"
+          style="background: linear-gradient(135deg, #8B5CF6, #6D28D9); color: #fff; width: auto; padding: 12px 28px;"
+          onclick="submitNewGalleryItem()">
           <i class="fa-solid fa-plus"></i> Thêm Vào Showroom VIP
         </button>
       </div>
 
       <!-- Danh Sách Ảnh Đang Hiển Thị -->
       <div class="panel-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
           <div class="panel-title" style="margin: 0; color: var(--gold);">
             <i class="fa-solid fa-layer-group"></i> Danh Sách Ảnh Showroom (<span id="gallery-item-count">0</span> ảnh)
           </div>
-          <button type="button" class="btn-save" style="padding: 6px 14px; font-size: 12.5px;" onclick="renderAdminGalleryList()">
+          <button type="button" class="btn-save" style="padding: 6px 14px; font-size: 12.5px;"
+            onclick="renderAdminGalleryList()">
             <i class="fa-solid fa-rotate-right"></i> Làm Mới
           </button>
         </div>
@@ -619,10 +978,12 @@
       <div class="page-title">
         <span>Quản Lý Hệ Thống CTV &amp; Đại Lý Bán Sỉ</span>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <a href="/ctv.html" target="_blank" class="btn-cancel" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px;">
+          <a href="/ctv.html" target="_blank" class="btn-cancel"
+            style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px;">
             <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở Trang CTV
           </a>
-          <button type="button" class="btn-save" id="btn-reload-ctv" style="padding: 8px 16px; font-size: 13px;" onclick="loadAdminCtvList(true)">
+          <button type="button" class="btn-save" id="btn-reload-ctv" style="padding: 8px 16px; font-size: 13px;"
+            onclick="loadAdminCtvList(true)">
             <i class="fa-solid fa-rotate" id="icon-reload-ctv"></i> Tải Lại Danh Sách CTV
           </button>
         </div>
@@ -630,17 +991,23 @@
 
       <!-- Card 1: Bật / Tắt chức năng CTV theo ý muốn -->
       <div class="panel-card">
-        <div class="panel-title" style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+        <div class="panel-title"
+          style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
           <i class="fa-solid fa-sliders"></i> Tùy Chỉnh Bật / Tắt Chức Năng CTV
         </div>
         <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px;">
-          Admin có toàn quyền bật hoặc tắt bất kỳ tính năng hoặc tab dịch vụ nào của bên CTV. Các thay đổi sẽ áp dụng ngay lập tức cho toàn bộ CTV.
+          Admin có toàn quyền bật hoặc tắt bất kỳ tính năng hoặc tab dịch vụ nào của bên CTV. Các thay đổi sẽ áp dụng
+          ngay lập tức cho toàn bộ CTV.
         </p>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
-          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14.5px;">
-              <input type="checkbox" id="ctv-cfg-allow-register" style="width: 20px; height: 20px; accent-color: var(--gold);">
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
+          <div
+            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14.5px;">
+              <input type="checkbox" id="ctv-cfg-allow-register"
+                style="width: 20px; height: 20px; accent-color: var(--gold);">
               <span>Cho Phép Đăng Ký CTV Mới</span>
             </label>
             <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
@@ -648,9 +1015,12 @@
             </p>
           </div>
 
-          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14.5px;">
-              <input type="checkbox" id="ctv-cfg-tab-locket" style="width: 20px; height: 20px; accent-color: var(--gold);">
+          <div
+            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14.5px;">
+              <input type="checkbox" id="ctv-cfg-tab-locket"
+                style="width: 20px; height: 20px; accent-color: var(--gold);">
               <span>Bật Dịch Vụ Locket Gold Thường</span>
             </label>
             <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
@@ -658,8 +1028,10 @@
             </p>
           </div>
 
-          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14.5px;">
+          <div
+            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14.5px;">
               <input type="checkbox" id="ctv-cfg-tab-vip" style="width: 20px; height: 20px; accent-color: var(--vip);">
               <span>Bật Dịch Vụ Locket Gold VIP</span>
             </label>
@@ -668,8 +1040,10 @@
             </p>
           </div>
 
-          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14.5px;">
+          <div
+            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14.5px;">
               <input type="checkbox" id="ctv-cfg-tab-spotify" style="width: 20px; height: 20px; accent-color: #10B981;">
               <span>Bật Dịch Vụ Spotify VIP</span>
             </label>
@@ -678,13 +1052,16 @@
             </p>
           </div>
 
-          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+          <div
+            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
             <label style="display: block; font-weight: 700; color: #fff; font-size: 14.5px; margin-bottom: 6px;">
               <i class="fa-solid fa-qrcode" style="color: var(--gold);"></i> Tiền Tố Nội Dung Nạp Tiền:
             </label>
-            <input type="text" id="ctv-cfg-deposit-prefix" class="form-input" placeholder="Ví dụ: NAP" style="font-weight: 800; text-transform: uppercase;">
+            <input type="text" id="ctv-cfg-deposit-prefix" class="form-input" placeholder="Ví dụ: NAP"
+              style="font-weight: 800; text-transform: uppercase;">
             <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px;">
-              Nội dung ngắn: <code style="color: #FDE68A;">NAP + 4 số = NAP9542</code> (chỉ 7 ký tự), không kèm khoảng trắng hay username dài, tránh xung đột lỗi ngân hàng.
+              Nội dung ngắn: <code style="color: #FDE68A;">NAP + 4 số = NAP9542</code> (chỉ 7 ký tự), không kèm khoảng
+              trắng hay username dài, tránh xung đột lỗi ngân hàng.
             </p>
           </div>
         </div>
@@ -696,20 +1073,26 @@
 
       <!-- Card: BẢNG GIÁ SỈ & TÙY CHỈNH TÊN GÓI CHO CTV (LOCKET, FILTER AI, SPOTIFY) -->
       <div class="panel-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
           <div>
-            <div class="panel-title" style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin: 0;">
+            <div class="panel-title"
+              style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin: 0;">
               <i class="fa-solid fa-tags"></i> Bảng Giá Sỉ &amp; Tùy Chỉnh Tên Gói Dành Cho CTV
             </div>
             <p style="color: var(--text-sub); font-size: 0.88rem; margin-top: 4px;">
-              Admin có thể đổi <b>Tên Gói</b> (VD: [LKGT3D], Locket Gold 1 Năm, Spotify VIP...), sửa <b>Giá Coin</b> (1 coin = 1.000đ) hoặc Bật/Tắt từng gói cho CTV.
+              Admin có thể đổi <b>Tên Gói</b> (VD: [LKGT3D], Locket Gold 1 Năm, Spotify VIP...), sửa <b>Giá Coin</b> (1
+              coin = 1.000đ) hoặc Bật/Tắt từng gói cho CTV.
             </p>
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button type="button" class="btn-save" style="padding: 8px 14px; font-size: 13px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34D399;" onclick="addNewCtvPlanModal()">
+            <button type="button" class="btn-save"
+              style="padding: 8px 14px; font-size: 13px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34D399;"
+              onclick="addNewCtvPlanModal()">
               <i class="fa-solid fa-plus"></i> Thêm Gói CTV Mới
             </button>
-            <button type="button" class="btn-save" style="padding: 8px 16px; font-size: 13px;" onclick="saveAdminCtvPlans()">
+            <button type="button" class="btn-save" style="padding: 8px 16px; font-size: 13px;"
+              onclick="saveAdminCtvPlans()">
               <i class="fa-solid fa-floppy-disk"></i> Lưu Bảng Giá &amp; Tên Gói
             </button>
           </div>
@@ -717,10 +1100,15 @@
 
         <!-- Filter Buttons for CTV plans: Tất cả / Locket Gold Thường / Locket Gold VIP / Spotify -->
         <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
-          <button type="button" class="btn-plan-tab active" id="filter-plan-all" onclick="filterAdminCtvPlansTable('all')">Tất Cả Gói</button>
-          <button type="button" class="btn-plan-tab" id="filter-plan-locket" onclick="filterAdminCtvPlansTable('locket')"><i class="fa-solid fa-camera"></i> Locket Gold Thường</button>
-          <button type="button" class="btn-plan-tab" id="filter-plan-filter" onclick="filterAdminCtvPlansTable('filter')"><i class="fa-solid fa-wand-magic-sparkles"></i> Locket Gold VIP</button>
-          <button type="button" class="btn-plan-tab" id="filter-plan-spotify" onclick="filterAdminCtvPlansTable('spotify')"><i class="fa-brands fa-spotify"></i> Spotify</button>
+          <button type="button" class="btn-plan-tab active" id="filter-plan-all"
+            onclick="filterAdminCtvPlansTable('all')">Tất Cả Gói</button>
+          <button type="button" class="btn-plan-tab" id="filter-plan-locket"
+            onclick="filterAdminCtvPlansTable('locket')"><i class="fa-solid fa-camera"></i> Locket Gold Thường</button>
+          <button type="button" class="btn-plan-tab" id="filter-plan-filter"
+            onclick="filterAdminCtvPlansTable('filter')"><i class="fa-solid fa-wand-magic-sparkles"></i> Locket Gold
+            VIP</button>
+          <button type="button" class="btn-plan-tab" id="filter-plan-spotify"
+            onclick="filterAdminCtvPlansTable('spotify')"><i class="fa-brands fa-spotify"></i> Spotify</button>
         </div>
 
         <div class="table-responsive">
@@ -751,11 +1139,13 @@
 
       <!-- Card 2: Danh sách tài khoản CTV & Thao tác Cộng/Trừ tiền, Khóa -->
       <div class="panel-card">
-        <div class="panel-title" style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+        <div class="panel-title"
+          style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
           <i class="fa-solid fa-users"></i> Danh Sách Tài Khoản CTV Dưới Hệ Thống
         </div>
         <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 16px;">
-          Xem danh sách cộng tác viên, số coin/tiền trong ví, số lượng khách đã kích hoạt. Bạn có thể cộng hoặc trừ tiền, hoặc khóa tài khoản CTV bất cứ lúc nào.
+          Xem danh sách cộng tác viên, số coin/tiền trong ví, số lượng khách đã kích hoạt. Bạn có thể cộng hoặc trừ
+          tiền, hoặc khóa tài khoản CTV bất cứ lúc nào.
         </p>
 
         <div class="table-responsive">
@@ -789,7 +1179,8 @@
       <div class="page-title">
         <span>Quản Lý Tính Năng &amp; Giao Diện Trang Khách Hàng</span>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <a href="index.html" target="_blank" class="btn-cancel" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px;">
+          <a href="index.html" target="_blank" class="btn-cancel"
+            style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px;">
             <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem Trang Khách
           </a>
           <button type="button" class="btn-save" onclick="saveCustomerFeatures()">
@@ -800,17 +1191,22 @@
 
       <!-- CARD 1: CHẾ ĐỘ BÁN & CHUYỂN ĐỔI GÓI (VIP vs THƯỜNG) -->
       <div class="panel-card">
-        <div class="panel-title" style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+        <div class="panel-title"
+          style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
           <i class="fa-solid fa-toggle-on"></i> Quản Lý Chế Độ Bán (VIP vs Locket Thường)
         </div>
         <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px;">
-          Tùy ý bật hoặc tắt chế độ bán VIP hoặc Thường. Nếu chỉ bật 1 chế độ, web sẽ tự động ẩn nút chuyển đổi và chỉ hiển thị chế độ đó cho khách.
+          Tùy ý bật hoặc tắt chế độ bán VIP hoặc Thường. Nếu chỉ bật 1 chế độ, web sẽ tự động ẩn nút chuyển đổi và chỉ
+          hiển thị chế độ đó cho khách.
         </p>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
           <!-- Bật VIP -->
-          <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 14px; padding: 18px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 800; color: #fff; font-size: 15px;">
+          <div
+            style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 14px; padding: 18px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 800; color: #fff; font-size: 15px;">
               <input type="checkbox" id="feat-enable-vip" style="width: 22px; height: 22px; accent-color: var(--vip);">
               <span>👑 Bật Chế Độ Locket VIP Pro</span>
             </label>
@@ -820,9 +1216,12 @@
           </div>
 
           <!-- Bật Thường -->
-          <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 14px; padding: 18px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 800; color: #fff; font-size: 15px;">
-              <input type="checkbox" id="feat-enable-regular" style="width: 22px; height: 22px; accent-color: var(--gold);">
+          <div
+            style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 14px; padding: 18px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 800; color: #fff; font-size: 15px;">
+              <input type="checkbox" id="feat-enable-regular"
+                style="width: 22px; height: 22px; accent-color: var(--gold);">
               <span>🍊 Bật Chế Độ Locket Gold Thường</span>
             </label>
             <p style="color: var(--text-sub); font-size: 12.5px; margin-top: 8px; margin-left: 34px; line-height: 1.5;">
@@ -831,7 +1230,8 @@
           </div>
 
           <!-- Chọn chế độ mặc định -->
-          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 14px; padding: 18px;">
+          <div
+            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 14px; padding: 18px;">
             <label style="display: block; font-weight: 800; color: #fff; font-size: 14.5px; margin-bottom: 8px;">
               <i class="fa-solid fa-arrows-split-up-and-left" style="color: var(--gold);"></i> Chế Độ Hiển Thị Mặc Định:
             </label>
@@ -848,7 +1248,8 @@
 
       <!-- CARD 2: BẬT / TẮT CÁC KHỐI GIAO DIỆN TRÊN TRANG KHÁCH HÀNG -->
       <div class="panel-card">
-        <div class="panel-title" style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+        <div class="panel-title"
+          style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
           <i class="fa-solid fa-eye"></i> Bật / Tắt Các Khối Giao Diện &amp; Nút Chức Năng
         </div>
         <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px;">
@@ -857,9 +1258,12 @@
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
           <!-- Marquee Bar -->
-          <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-show-marquee" style="width: 20px; height: 20px; accent-color: var(--gold);">
+          <div
+            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
+              <input type="checkbox" id="feat-show-marquee"
+                style="width: 20px; height: 20px; accent-color: var(--gold);">
               <span>Thanh Chạy Chữ Khuyến Mãi (Marquee)</span>
             </label>
             <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
@@ -868,9 +1272,12 @@
           </div>
 
           <!-- Hero Badge -->
-          <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-show-hero-badge" style="width: 20px; height: 20px; accent-color: var(--gold);">
+          <div
+            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
+              <input type="checkbox" id="feat-show-hero-badge"
+                style="width: 20px; height: 20px; accent-color: var(--gold);">
               <span>Huy Hiệu Nổi Ở Đầu Trang (Hero Badge)</span>
             </label>
             <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
@@ -879,9 +1286,12 @@
           </div>
 
           <!-- Showroom -->
-          <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-show-showroom" style="width: 20px; height: 20px; accent-color: var(--vip);">
+          <div
+            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
+              <input type="checkbox" id="feat-show-showroom"
+                style="width: 20px; height: 20px; accent-color: var(--vip);">
               <span>Khối Showroom Ảnh &amp; Tính Năng Độc Quyền</span>
             </label>
             <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
@@ -890,9 +1300,12 @@
           </div>
 
           <!-- Pricing -->
-          <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-show-pricing" style="width: 20px; height: 20px; accent-color: var(--gold);">
+          <div
+            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
+              <input type="checkbox" id="feat-show-pricing"
+                style="width: 20px; height: 20px; accent-color: var(--gold);">
               <span>Khối Bảng Giá Gói Cước (Pricing)</span>
             </label>
             <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
@@ -901,8 +1314,10 @@
           </div>
 
           <!-- DNS Guide -->
-          <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
+          <div
+            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
               <input type="checkbox" id="feat-show-dns-guide" style="width: 20px; height: 20px; accent-color: #10B981;">
               <span>Khối Hướng Dẫn Cài Đặt DNS (3 Bước Safari)</span>
             </label>
@@ -912,9 +1327,12 @@
           </div>
 
           <!-- Lookup Order / DNS -->
-          <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-show-lookup" style="width: 20px; height: 20px; accent-color: var(--gold);">
+          <div
+            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
+              <input type="checkbox" id="feat-show-lookup"
+                style="width: 20px; height: 20px; accent-color: var(--gold);">
               <span>Nút Tra Cứu DNS &amp; Lịch Sử Đơn</span>
             </label>
             <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
@@ -923,9 +1341,12 @@
           </div>
 
           <!-- Cổng CTV Nav -->
-          <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-show-ctv-nav" style="width: 20px; height: 20px; accent-color: var(--gold);">
+          <div
+            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
+              <input type="checkbox" id="feat-show-ctv-nav"
+                style="width: 20px; height: 20px; accent-color: var(--gold);">
               <span>Nút "Cổng CTV" Trên Thanh Menu</span>
             </label>
             <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
@@ -934,8 +1355,10 @@
           </div>
 
           <!-- Nút Zalo CSKH -->
-          <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
+          <div
+            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
               <input type="checkbox" id="feat-show-zalo" style="width: 20px; height: 20px; accent-color: #0284C7;">
               <span>Nút Liên Hệ Zalo CSKH</span>
             </label>
@@ -945,8 +1368,10 @@
           </div>
 
           <!-- Nút [X] Hủy Thanh Toán -->
-          <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
+          <div
+            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
               <input type="checkbox" id="feat-allow-cancel" style="width: 20px; height: 20px; accent-color: #EF4444;">
               <span>Nút [X] Hủy / Đổi Ý Khi Quét Mã VietQR</span>
             </label>
@@ -956,8 +1381,10 @@
           </div>
 
           <!-- Tự Động Quét Thanh Toán -->
-          <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
+          <div
+            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+            <label
+              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
               <input type="checkbox" id="feat-auto-check-pay" style="width: 20px; height: 20px; accent-color: #10B981;">
               <span>Tự Động Đối Soát Thanh Toán (Polling 3s)</span>
             </label>
@@ -970,7 +1397,8 @@
 
       <!-- CARD 3: TÙY CHỈNH NỘI DUNG CHỮ & BANNER TRANG CHỦ -->
       <div class="panel-card">
-        <div class="panel-title" style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+        <div class="panel-title"
+          style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
           <i class="fa-solid fa-pen-to-square"></i> Tùy Chỉnh Nội Dung Chữ &amp; Banner Trang Chủ
         </div>
         <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px;">
@@ -979,22 +1407,26 @@
 
         <div class="form-group" style="margin-bottom: 16px;">
           <label>Chữ Trong Huy Hiệu Nổi (Hero Dynamic Badge):</label>
-          <input type="text" id="cust-cfg-hero-badge" class="form-input" placeholder="BẢN LOCKET VIP ĐỈNH CAO: 60S VIDEO &amp; 49+ AI FILTER">
+          <input type="text" id="cust-cfg-hero-badge" class="form-input"
+            placeholder="BẢN LOCKET VIP ĐỈNH CAO: 60S VIDEO &amp; 49+ AI FILTER">
         </div>
 
         <div class="form-group" style="margin-bottom: 16px;">
           <label>Tiêu Đề Lớn Đầu Trang (Hero Title — hỗ trợ thẻ HTML):</label>
-          <input type="text" id="cust-cfg-hero-title" class="form-input" placeholder="Cổng Nâng Cấp Locket VIP Pro &amp; Locket Gold Chính Chủ">
+          <input type="text" id="cust-cfg-hero-title" class="form-input"
+            placeholder="Cổng Nâng Cấp Locket VIP Pro &amp; Locket Gold Chính Chủ">
         </div>
 
         <div class="form-group" style="margin-bottom: 16px;">
           <label>Đoạn Giới Thiệu Phụ Đề (Hero Subtitle):</label>
-          <textarea id="cust-cfg-hero-subtitle" class="form-input" rows="3" placeholder="Quay video siêu dài 60s, mở khoá 49+ bộ lọc camera AI độc quyền..."></textarea>
+          <textarea id="cust-cfg-hero-subtitle" class="form-input" rows="3"
+            placeholder="Quay video siêu dài 60s, mở khoá 49+ bộ lọc camera AI độc quyền..."></textarea>
         </div>
 
         <div class="form-group" style="margin-bottom: 24px;">
           <label>Nội Dung Chữ Chạy Khuyến Mãi (Marquee Notice):</label>
-          <textarea id="cust-cfg-marquee" class="form-input" rows="2" placeholder="🔥 SALE ĐẶC BIỆT: Nâng cấp Locket VIP 60s..."></textarea>
+          <textarea id="cust-cfg-marquee" class="form-input" rows="2"
+            placeholder="🔥 SALE ĐẶC BIỆT: Nâng cấp Locket VIP 60s..."></textarea>
         </div>
 
         <button type="button" class="btn-save" onclick="saveCustomerFeatures()">
@@ -1004,52 +1436,73 @@
 
       <!-- CARD 4: CẤU HÌNH VIDEO & NỘI DUNG HƯỚNG DẪN CÀI ĐẶT DNS -->
       <div class="panel-card">
-        <div class="panel-title" style="color: #38BDF8; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+        <div class="panel-title"
+          style="color: #38BDF8; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
           <i class="fa-solid fa-circle-play"></i> Video &amp; Nội Dung Hướng Dẫn Cài Đặt DNS
         </div>
         <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px;">
-          Dán link video YouTube hoặc file MP4 để hiển thị trong ô video hướng dẫn DNS và tùy chỉnh các bước hướng dẫn cho khách.
+          Dán link video YouTube hoặc file MP4 để hiển thị trong ô video hướng dẫn DNS và tùy chỉnh các bước hướng dẫn
+          cho khách.
         </p>
 
         <div class="form-group" style="margin-bottom: 16px;">
-          <label><i class="fa-brands fa-youtube" style="color: #EF4444;"></i> Link Video Hướng Dẫn DNS (YouTube hoặc file video .mp4):</label>
-          <input type="text" id="cust-cfg-dns-video" class="form-input" placeholder="Ví dụ: https://www.youtube.com/watch?v=xxxx hoặc https://youtu.be/xxxx hoặc link video MP4">
+          <label><i class="fa-brands fa-youtube" style="color: #EF4444;"></i> Link Video Hướng Dẫn DNS (YouTube hoặc
+            file video .mp4):</label>
+          <input type="text" id="cust-cfg-dns-video" class="form-input"
+            placeholder="Ví dụ: https://www.youtube.com/watch?v=xxxx hoặc https://youtu.be/xxxx hoặc link video MP4">
           <small style="color: var(--text-sub); display: block; margin-top: 5px;">
-            💡 Hỗ trợ mọi định dạng: link YouTube (watch, youtu.be, shorts) hoặc link file trực tiếp (.mp4). Để trống nếu chỉ muốn hiện khung chờ.
+            💡 Hỗ trợ mọi định dạng: link YouTube (watch, youtu.be, shorts) hoặc link file trực tiếp (.mp4). Để trống
+            nếu chỉ muốn hiện khung chờ.
           </small>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px;">
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px;">
           <div class="form-group">
             <label>Tiêu Đề Khối DNS:</label>
-            <input type="text" id="cust-cfg-dns-title" class="form-input" placeholder="Hướng Dẫn Cài Đặt Cấu Hình DNS Locket">
+            <input type="text" id="cust-cfg-dns-title" class="form-input"
+              placeholder="Hướng Dẫn Cài Đặt Cấu Hình DNS Locket">
           </div>
           <div class="form-group">
             <label>Phụ Đề Khối DNS:</label>
-            <input type="text" id="cust-cfg-dns-subtitle" class="form-input" placeholder="Chỉ 3 bước nhanh gọn trực tiếp bằng trình duyệt Safari trên iPhone — Hoàn toàn tự động 100%">
+            <input type="text" id="cust-cfg-dns-subtitle" class="form-input"
+              placeholder="Chỉ 3 bước nhanh gọn trực tiếp bằng trình duyệt Safari trên iPhone — Hoàn toàn tự động 100%">
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 22px;">
-          <div class="form-group" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 22px;">
+          <div class="form-group"
+            style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
             <label style="color: #38BDF8; font-weight: 800;">Bước 1: Tiêu Đề &amp; Chi Tiết</label>
-            <input type="text" id="cust-cfg-dns-step1-title" class="form-input" placeholder="Tải Hồ Sơ Cấu Hình" style="margin: 8px 0;">
-            <textarea id="cust-cfg-dns-step1-desc" class="form-input" rows="3" placeholder="Sau khi thanh toán hoặc bấm Tra Cứu DNS, mở link bằng trình duyệt Safari..."></textarea>
+            <input type="text" id="cust-cfg-dns-step1-title" class="form-input" placeholder="Tải Hồ Sơ Cấu Hình"
+              style="margin: 8px 0;">
+            <textarea id="cust-cfg-dns-step1-desc" class="form-input" rows="3"
+              placeholder="Sau khi thanh toán hoặc bấm Tra Cứu DNS, mở link bằng trình duyệt Safari..."></textarea>
           </div>
-          <div class="form-group" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+          <div class="form-group"
+            style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
             <label style="color: #38BDF8; font-weight: 800;">Bước 2: Tiêu Đề &amp; Chi Tiết</label>
-            <input type="text" id="cust-cfg-dns-step2-title" class="form-input" placeholder="Vào Cài Đặt iPhone Duyệt" style="margin: 8px 0;">
-            <textarea id="cust-cfg-dns-step2-desc" class="form-input" rows="3" placeholder="Mở Cài đặt iPhone ➔ Chọn mục 'Đã tải về hồ sơ' ngay dưới tên Apple ID..."></textarea>
+            <input type="text" id="cust-cfg-dns-step2-title" class="form-input" placeholder="Vào Cài Đặt iPhone Duyệt"
+              style="margin: 8px 0;">
+            <textarea id="cust-cfg-dns-step2-desc" class="form-input" rows="3"
+              placeholder="Mở Cài đặt iPhone ➔ Chọn mục 'Đã tải về hồ sơ' ngay dưới tên Apple ID..."></textarea>
           </div>
-          <div class="form-group" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+          <div class="form-group"
+            style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
             <label style="color: #10B981; font-weight: 800;">Bước 3: Tiêu Đề &amp; Chi Tiết</label>
-            <input type="text" id="cust-cfg-dns-step3-title" class="form-input" placeholder="Bật tin cậy chứng chỉ (bắt buộc)" style="margin: 8px 0;">
-            <textarea id="cust-cfg-dns-step3-desc" class="form-input" rows="3" placeholder="Vào Cài đặt chung → Giới thiệu → Cài đặt tin cậy chứng chỉ..."></textarea>
+            <input type="text" id="cust-cfg-dns-step3-title" class="form-input"
+              placeholder="Bật tin cậy chứng chỉ (bắt buộc)" style="margin: 8px 0;">
+            <textarea id="cust-cfg-dns-step3-desc" class="form-input" rows="3"
+              placeholder="Vào Cài đặt chung → Giới thiệu → Cài đặt tin cậy chứng chỉ..."></textarea>
           </div>
-          <div class="form-group" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+          <div class="form-group"
+            style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
             <label style="color: #F59E0B; font-weight: 800;">Bước 4: Tiêu Đề &amp; Chi Tiết</label>
-            <input type="text" id="cust-cfg-dns-step4-title" class="form-input" placeholder="Mở lại Locket và kiểm tra" style="margin: 8px 0;">
-            <textarea id="cust-cfg-dns-step4-desc" class="form-input" rows="3" placeholder="Tắt hẳn app rồi mở lại, vào Hồ sơ: thấy huy hiệu / khung Gold là thành công..."></textarea>
+            <input type="text" id="cust-cfg-dns-step4-title" class="form-input" placeholder="Mở lại Locket và kiểm tra"
+              style="margin: 8px 0;">
+            <textarea id="cust-cfg-dns-step4-desc" class="form-input" rows="3"
+              placeholder="Tắt hẳn app rồi mở lại, vào Hồ sơ: thấy huy hiệu / khung Gold là thành công..."></textarea>
           </div>
         </div>
 
@@ -1062,13 +1515,16 @@
   </main>
 
   <!-- Modal Chỉnh Sửa Coin CTV -->
-  <div class="modal-overlay" id="modal-adjust-balance" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: #121622; border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 20px; max-width: 440px; width: 100%; padding: 26px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
+  <div class="modal-overlay" id="modal-adjust-balance"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div
+      style="background: #121622; border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 20px; max-width: 440px; width: 100%; padding: 26px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
       <h3 style="margin-bottom: 12px; font-size: 1.25rem; color: #fff;">
         <i class="fa-solid fa-coins" style="color: var(--gold);"></i> Chỉnh Sửa Coin CTV
       </h3>
       <p style="color: var(--text-sub); font-size: 13.5px; margin-bottom: 18px;">
-        CTV: <b id="modal-ctv-user" style="color: var(--gold-light);">@username</b> — Hiện có: <b id="modal-ctv-current-coins" style="color: #10B981;">0</b> Coins
+        CTV: <b id="modal-ctv-user" style="color: var(--gold-light);">@username</b> — Hiện có: <b
+          id="modal-ctv-current-coins" style="color: #10B981;">0</b> Coins
       </p>
 
       <div class="form-group" style="margin-bottom: 14px;">
@@ -1082,7 +1538,8 @@
 
       <div class="form-group" style="margin-bottom: 14px;">
         <label id="adjust-coins-label">Số Coin muốn đặt:</label>
-        <input type="number" id="adjust-balance-coins" class="form-input" placeholder="Ví dụ: 100" min="0" step="1" oninput="handleCoinsInputChange()">
+        <input type="number" id="adjust-balance-coins" class="form-input" placeholder="Ví dụ: 100" min="0" step="1"
+          oninput="handleCoinsInputChange()">
         <div style="margin-top: 6px; font-size: 12.5px; color: var(--text-sub);">
           💰 Quy đổi thành tiền: <b id="coins-preview-vnd" style="color: #10B981;">0đ</b> (1 coin = 1.000đ)
         </div>
@@ -1096,8 +1553,10 @@
   </div>
 
   <!-- Modal Thêm Gói CTV Mới -->
-  <div class="modal-overlay" id="modal-add-ctv-plan" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: #121622; border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 20px; max-width: 480px; width: 100%; padding: 26px; position: relative;">
+  <div class="modal-overlay" id="modal-add-ctv-plan"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div
+      style="background: #121622; border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 20px; max-width: 480px; width: 100%; padding: 26px; position: relative;">
       <h3 style="margin-bottom: 14px; font-size: 1.25rem; color: #fff;">
         <i class="fa-solid fa-plus-circle" style="color: var(--gold);"></i> Thêm Gói Cước Mới Cho CTV
       </h3>
@@ -1137,5 +1596,5 @@
 
   <script src="js/admin.js"></script>
 </body>
-</html>
 
+</html>

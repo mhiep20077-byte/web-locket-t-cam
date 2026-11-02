@@ -943,15 +943,29 @@ app.get('/api/recent-transactions', (req, res) => {
   res.json(recent);
 });
 
-// Tải file cấu hình DNS (.mobileconfig) cho iOS
-app.get('/profile', async (req, res) => {
-  const username = cleanLocketUsername(req.query.username || '');
-  const uid = req.query.uid || '';
+// ============================================================
+// PROFILE & DNS DOWNLOAD (.mobileconfig) CHO IOS / SAFARI
+// Kết nối trực tiếp Cụ Cam API, tải cấu hình DNS 1 chạm
+// ============================================================
+app.all([
+  '/api/profile/download',
+  '/api/locket/profile/download',
+  '/profile',
+  '/dns',
+  '/profile/download',
+  '/locket.mobileconfig',
+  '/LocketGold.mobileconfig'
+], async (req, res) => {
+  const rawUser = req.query.username || req.body?.username || '';
+  const username = cleanLocketUsername(rawUser);
+  const uid = req.query.uid || req.body?.uid || '';
   const settings = loadSettings();
-  const cucamKey = settings.apiConfig?.cucamApiKey || 'sk_a6f8887c53d6baa3f90a7929e85b693b7dddc82bfd4ecfb233efa75dd7551df7';
+  const cucamKey = settings.apiConfig?.cucamApiKey || process.env.LOCKET_SECRET_KEY || 'sk_a6f8887c53d6baa3f90a7929e85b693b7dddc82bfd4ecfb233efa75dd7551df7';
   const cucamBase = settings.apiConfig?.cucamApiBase || 'https://locket.2707226.xyz';
 
   let resolvedUid = uid;
+
+  // 1. Nếu có username mà chưa có UID -> tra cứu UID từ đơn hàng hoặc API Cụ Cam
   if (!resolvedUid && username) {
     const orders = loadOrders();
     const foundOrder = orders.find(o => cleanLocketUsername(o.username) === username && o.uid);
@@ -966,32 +980,90 @@ app.get('/profile', async (req, res) => {
         if (cData?.data?.uid) {
           resolvedUid = typeof cData.data.uid === 'string' ? cData.data.uid : cData.data.uid.uidString;
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('[PROFILE] Lỗi tra UID:', e.message);
+      }
     }
   }
 
+  // 2. Nếu có UID -> tải profile cá nhân hoá từ Cụ Cam (/api/profile?uid=...)
   if (resolvedUid) {
     try {
-      const resp = await fetch(`${cucamBase}/api/profile/custom`, {
-        method: 'POST',
+      const resp = await fetch(`${cucamBase}/api/profile?uid=${encodeURIComponent(resolvedUid)}`, {
         headers: {
-          'Authorization': `Bearer ${cucamKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ uid: resolvedUid })
+          'Authorization': `Bearer ${cucamKey}`
+        }
       });
       if (resp.ok) {
         const buffer = Buffer.from(await resp.arrayBuffer());
-        res.setHeader('Content-Type', 'application/x-apple-aspen-config');
+        res.setHeader('Content-Type', 'application/x-apple-aspen-config; charset=utf-8');
         res.setHeader('Content-Disposition', 'attachment; filename="LocketGold.mobileconfig"');
         return res.send(buffer);
       }
     } catch (e) {
-      console.error('[PROFILE] Lỗi tải profile:', e.message);
+      console.warn('[PROFILE] Lỗi tải profile theo UID, chuyển sang DNS chung:', e.message);
     }
   }
 
-  res.redirect(302, 'https://tocam.vip/gold');
+  // 3. Fallback hoặc tải chung: Tải profile DNS chuẩn từ Cụ Cam (https://locket.2707226.xyz/dns)
+  try {
+    const globalRes = await fetch(`${cucamBase}/dns`, {
+      headers: cucamKey ? { 'Authorization': `Bearer ${cucamKey}` } : {}
+    });
+    if (globalRes.ok) {
+      const buffer = Buffer.from(await globalRes.arrayBuffer());
+      res.setHeader('Content-Type', 'application/x-apple-aspen-config; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="LocketGold.mobileconfig"');
+      return res.send(buffer);
+    }
+  } catch (e) {
+    console.error('[PROFILE] Lỗi tải global DNS từ Cụ Cam:', e.message);
+  }
+
+  // 4. Nếu máy chủ Cụ Cam tạm thời nghẽn mạng, tạo profile DNS DoH dự phòng cục bộ
+  const fallbackPlist = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadDisplayName</key>
+    <string>Locket Gold DNS Profile</string>
+    <key>PayloadIdentifier</key>
+    <string>com.tocam.locket.dns</string>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>A1B2C3D4-E5F6-7890-ABCD-EF1234567890</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>DNSSettings</key>
+            <dict>
+                <key>DNSProtocol</key>
+                <string>HTTPS</string>
+                <key>ServerURL</key>
+                <string>https://dns.locket.2707226.xyz/dns-query</string>
+            </dict>
+            <key>PayloadDisplayName</key>
+            <string>Locket Gold DNS</string>
+            <key>PayloadIdentifier</key>
+            <string>com.tocam.locket.dns.doh</string>
+            <key>PayloadType</key>
+            <string>com.apple.dnsSettings.managed</string>
+            <key>PayloadUUID</key>
+            <string>B2C3D4E5-F6A7-8901-BCDE-F12345678901</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+        </dict>
+    </array>
+</dict>
+</plist>`;
+  res.setHeader('Content-Type', 'application/x-apple-aspen-config; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="LocketGold.mobileconfig"');
+  return res.send(Buffer.from(fallbackPlist, 'utf8'));
 });
 
 // ============================================================

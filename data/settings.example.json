@@ -1,0 +1,328 @@
+{
+  "siteName": "TỔ CAM — LOCKET VIP 👑",
+  "siteSlogan": "Cổng Nâng Cấp Locket Gold & VIP Pro 49+ Filter Camera AI",
+  "brandLogo": "👑",
+  "hotline": "0386.116.104",
+  "zaloUrl": "https://zalo.me/0386116104",
+  "supportGroupUrl": "https://zalo.me/0386116104",
+  "marqueeNotice": "?? SALE D?C BI?T: N�ng c?p Locket VIP 60s + 49 B? L?c Camera AI (Photobooth 4 �, X� T�i M� Nh?n Ti?n Th?t Tr�ng 50k) Ch? T? 75k - K�ch Ho?t T? D?ng 100%!",
+  "bankInfo": {
+    "bankId": "VPBANK",
+    "bankName": "VPBank (Ngân Hàng Việt Nam Thịnh Vượng)",
+    "accountNumber": "643391953",
+    "accountName": "NGUYEN MINH HIEP",
+    "memoPrefix": "TOCAM"
+  },
+  "plans": {
+    "vip": [
+      {
+        "id": "VIP_1Y",
+        "code": "VIP_1Y",
+        "packageKey": "filter_1year",
+        "name": "Locket VIP Pro 1 Năm",
+        "price": 75000,
+        "originalPrice": 290000,
+        "duration": "1 Năm",
+        "videoLength": "60 Giây Siêu Dài",
+        "filters": "49+ Bộ Lọc AI Độc Quyền",
+        "badge": "HOT BÁN CHẠY",
+        "features": [
+          "👑 49+ Bộ lọc Camera AI độc quyền",
+          "📸 Filter Photobooth 4 ô kakka Hàn Quốc/Y2K",
+          "🎁 Filter Xé Túi Mù nhận tiền thật (Trúng 10k-50k)",
+          "⏱️ Quay video siêu dài 60 GIÂY (Gấp đôi bản thường)",
+          "💎 Mở khoá toàn bộ huy hiệu & icon app VIP độc quyền",
+          "🖼️ Up ảnh & video HD từ thư viện không giới hạn",
+          "💎 Huy hiệu Vương Miện VIP sang trọng độc quyền",
+          "🛡️ Cài 1 chạm không cần iCloud, bảo hành 1 năm"
+        ],
+        "active": true
+      },
+      {
+        "id": "VIP_2Y",
+        "code": "VIP_2Y",
+        "packageKey": "filter_2year",
+        "name": "Locket VIP Pro 2 Năm",
+        "price": 95000,
+        "originalPrice": 450000,
+        "duration": "2 Năm",
+        "videoLength": "60 Giây Siêu Dài",
+        "filters": "49+ Bộ Lọc AI Độc Quyền",
+        "badge": "SIÊU HỜI (CHỈ +20K)",
+        "features": [
+          "👑 49+ Bộ lọc Camera AI độc quyền trọn gói",
+          "📸 Filter Photobooth 4 ô kakka Hàn Quốc/Y2K",
+          "🎁 Filter Xé Túi Mù nhận tiền thật (Trúng 10k-50k)",
+          "⏱️ Quay video siêu dài 60 GIÂY liên tục",
+          "💎 Mở khoá toàn bộ huy hiệu & icon app VIP độc quyền",
+          "🖼️ Up ảnh & video HD từ thư viện không giới hạn",
+          "💎 Huy hiệu Vương Miện VIP sang trọng độc quyền",
+          "🛡️ Bảo hành trọn gói 2 năm 1 đổi 1"
+        ],
+        "active": true
+      },
+      {
+        "id": "VIP_VV",
+        "code": "VIP_LIFETIME",
+        "packageKey": "filter_lifetime",
+        "name": "Locket VIP Vĩnh Viễn",
+        "price": 150000,
+        "originalPrice": 990000,
+        "duration": "Vĩnh Viễn Trọn Đời",
+        "videoLength": "60 Giây Siêu Dài",
+        "filters": "49+ Bộ Lọc AI Cập Nhật Trọn Đời",
+        "badge": "👑 VIP ĐỈNH CAO",
+        "features": [
+          "👑 Full 49+ Bộ lọc Camera AI cập nhật mẫu mới trọn đời",
+          "📸 Filter Photobooth 4 ô kakka phong cách hot trend",
+          "🎁 Filter Xé Túi Mù nhận tiền thật (Trúng 10k-50k)",
+          "⏱️ Quay video siêu dài 60 GIÂY không giới hạn",
+          "💎 Mở khoá toàn bộ huy hiệu & icon app VIP độc quyền",
+          "🖼️ Tải ảnh & video chất lượng gốc không nén",
+          "💎 Huy hiệu Kim Cương & Vương Miện VIP trọn đời",
+          "🛡️ Bảo hành vĩnh viễn không bao giờ mất Gold"
+        ],
+        "active": true
+      }
+    ],
+    "regular": [
+      {
+        "id": "REG_TEST",
+        "code": "TEST",
+        "name": "Locket Gold Dùng Thử",
+        "price": 5000,
+        "originalPrice": 25000,
+        "duration": "1 ngày",
+        "videoLength": "30 Giây",
+        "filters": "Bộ lọc cơ bản",
+        "badge": "TRẢI NGHIỆM",
+        "features": [
+          "Mở khoá Locket Gold chính chủ",
+          "Không quảng cáo làm phiền",
+          "Upload ảnh / video từ thư viện",
+          "<b class=\"text-highlight-video\">Quay video Locket 30 giây</b>",
+          "Thay đổi icon Locket độc quyền",
+          "<b class=\"text-highlight-caption\">Thêm caption hot trend, thú vị</b>",
+          "Mở khoá giới hạn bạn bè & Thêm âm thanh",
+          "<b class=\"text-highlight-filter\">Mở khoá Filter màu độc quyền</b>",
+          "<b class=\"text-highlight-warranty\">Trải nghiệm 1 ngày đầy đủ tính năng</b>"
+        ],
+        "active": true
+      },
+      {
+        "id": "REG_6M",
+        "code": "MONTH6",
+        "name": "Locket Gold Tiết Kiệm",
+        "price": 29000,
+        "originalPrice": 120000,
+        "duration": "6 Tháng",
+        "videoLength": "30 Giây",
+        "filters": "Bộ lọc cơ bản",
+        "badge": "TIẾT KIỆM",
+        "features": [
+          "Mở khoá Locket Gold chính chủ",
+          "Không quảng cáo làm phiền",
+          "Upload ảnh / video từ thư viện",
+          "<b class=\"text-highlight-video\">Quay video Locket 30 giây</b>",
+          "Thay đổi icon Locket độc quyền",
+          "<b class=\"text-highlight-caption\">Thêm caption hot trend, thú vị</b>",
+          "Mở khoá giới hạn bạn bè & Thêm âm thanh",
+          "<b class=\"text-highlight-filter\">Mở khoá Filter màu độc quyền</b>",
+          "<b class=\"text-highlight-warranty\">Bảo hành 6 tháng 1 đổi 1</b>"
+        ],
+        "active": true
+      },
+      {
+        "id": "REG_1Y",
+        "code": "YEARLY",
+        "name": "Locket Gold 1 Năm",
+        "price": 49000,
+        "originalPrice": 250000,
+        "duration": "1 Năm",
+        "videoLength": "30 Giây",
+        "filters": "Bộ lọc cơ bản",
+        "badge": "PHỔ BIẾN",
+        "features": [
+          "Mở khoá Locket Gold chính chủ",
+          "Không quảng cáo làm phiền",
+          "Upload ảnh / video từ thư viện",
+          "<b class=\"text-highlight-video\">Quay video Locket 30 giây</b>",
+          "Thay đổi icon Locket độc quyền",
+          "<b class=\"text-highlight-caption\">Thêm caption hot trend, thú vị</b>",
+          "Mở khoá giới hạn bạn bè & Thêm âm thanh",
+          "<b class=\"text-highlight-filter\">Mở khoá Filter màu độc quyền</b>",
+          "<b class=\"text-highlight-warranty\">Bảo hành trọn vẹn 1 năm 1 đổi 1</b>"
+        ],
+        "active": true
+      },
+      {
+        "id": "REG_VV",
+        "code": "LIFETIME",
+        "name": "Locket Gold Vĩnh Viễn",
+        "price": 89000,
+        "originalPrice": 450000,
+        "duration": "Vĩnh Viễn",
+        "videoLength": "30 Giây",
+        "filters": "Bộ lọc cơ bản",
+        "badge": "LÂU DÀI",
+        "features": [
+          "Mở khoá Locket Gold chính chủ",
+          "Không quảng cáo làm phiền",
+          "Upload ảnh / video từ thư viện",
+          "<b class=\"text-highlight-video\">Quay video Locket 30 giây</b>",
+          "Thay đổi icon Locket độc quyền",
+          "<b class=\"text-highlight-caption\">Thêm caption hot trend, thú vị</b>",
+          "Mở khoá giới hạn bạn bè & Thêm âm thanh",
+          "<b class=\"text-highlight-filter\">Mở khoá Filter màu độc quyền</b>",
+          "<b class=\"text-highlight-warranty\">Bảo hành trọn đời vĩnh viễn</b>"
+        ],
+        "active": true
+      }
+    ]
+  },
+  "vipGallery": [
+    {
+      "id": "gallery_1",
+      "title": "Photobooth Kakka 4 Ô",
+      "tag": "HOT TREND Y2K",
+      "imageUrl": "images/filter-photobooth.jpg",
+      "caption": "Hiệu ứng chụp liên hoàn 4 ô cute phong cách Hàn Quốc cực xinh"
+    },
+    {
+      "id": "gallery_2",
+      "title": "Xé Túi Mù May Mắn",
+      "tag": "TRÚNG TIỀN THẬT 10K-50K",
+      "imageUrl": "images/filter-tui-mu.jpg",
+      "caption": "Mở túi mù trên camera Locket trúng mã QR chuyển thẳng tiền thật về tài khoản"
+    }
+  ],
+  "apiConfig": {
+    "kawaiiApiKey": "YOUR_KAWAII_API_KEY",
+    "kawaiiApiBase": "https://ctv.nodns.vn",
+    "cucamApiKey": "YOUR_CUCAM_API_KEY",
+    "cucamApiBase": "https://locket.2707226.xyz",
+    "autoActivateVIP": true,
+    "autoActivateRegular": true,
+    "cassoSecret": "",
+    "sepayApiKey": ""
+  },
+  "ctvSettings": {
+    "allowRegister": true,
+    "tabLocket": true,
+    "tabVipFilter": true,
+    "tabSpotify": false,
+    "coinRate": 1000,
+    "wholesalePlans": [
+      {
+        "id": "locket_test",
+        "name": "[LKGT3D] — 1 ngày (Dùng thử test) — 1 coin",
+        "service": "locket",
+        "durationDays": 1,
+        "coin": 1,
+        "active": true
+      },
+      {
+        "id": "locket_6m",
+        "name": "[LKG6M] — 6 tháng — 8 coin",
+        "service": "locket",
+        "durationDays": 180,
+        "coin": 8,
+        "active": true
+      },
+      {
+        "id": "locket_1y",
+        "name": "[LKG1Y] — 1 năm — 15 coin",
+        "service": "locket",
+        "durationDays": 365,
+        "coin": 15,
+        "active": true
+      },
+      {
+        "id": "locket_lifetime",
+        "name": "[LKGVV] — Vĩnh Viễn — 31 coin",
+        "service": "locket",
+        "durationDays": 99999,
+        "coin": 31,
+        "active": true
+      },
+      {
+        "id": "vip_1y",
+        "name": "[VIP 1Y] — 1 năm (Filter AI + Photobooth) — 50 coin",
+        "service": "filter",
+        "durationDays": 365,
+        "coin": 50,
+        "active": true
+      },
+      {
+        "id": "vip_2y",
+        "name": "[VIP 2Y] — 2 năm (Filter AI + Photobooth) — 70 coin",
+        "service": "filter",
+        "durationDays": 730,
+        "coin": 70,
+        "active": true
+      },
+      {
+        "id": "vip_lifetime",
+        "name": "[VIP LF] — Vĩnh Viễn (Filter AI + Photobooth) — 110 coin",
+        "service": "filter",
+        "durationDays": 99999,
+        "coin": 110,
+        "active": true
+      },
+      {
+        "id": "spotify_6m",
+        "name": "[SP6M] — 6 tháng Spotify VIP — 8 coin",
+        "service": "spotify",
+        "durationDays": 180,
+        "coin": 8,
+        "active": true
+      },
+      {
+        "id": "spotify_1y",
+        "name": "[SPOTIFY1Y] — 1 năm Spotify VIP — 15 coin",
+        "service": "spotify",
+        "durationDays": 365,
+        "coin": 15,
+        "active": true
+      },
+      {
+        "id": "spotify_vv",
+        "name": "[SPVV] — Vĩnh Viễn Spotify VIP — 31 coin",
+        "service": "spotify",
+        "durationDays": 99999,
+        "coin": 31,
+        "active": true
+      }
+    ],
+    "depositPrefix": "NAP"
+  },
+  "customerFeatures": {
+    "enableVipMode": true,
+    "enableRegularMode": true,
+    "defaultMode": "vip",
+    "showMarqueeNotice": true,
+    "showHeroBadge": true,
+    "showShowroom": true,
+    "showPricing": true,
+    "showDnsGuide": true,
+    "showLookupOrder": true,
+    "showCtvNav": true,
+    "showZaloButton": true,
+    "allowCancelOrder": true,
+    "autoCheckPayment": true,
+    "heroTitle": "Cổng Nâng Cấp Locket VIP Pro & Locket Gold Chính Chủ",
+    "heroSubtitle": "Quay video siêu dài 60s, mở khoá 49+ bộ lọc camera AI độc quyền: Photobooth 4 ô hot trend, xé túi mù trúng tiền thật. Kích hoạt 1 chạm tự động 100% qua Safari.",
+    "heroBadgeText": "BẢN LOCKET VIP ĐỈNH CAO: 60S VIDEO & 49+ AI FILTER",
+    "marqueeNotice": "🔥 SALE ĐẶC BIỆT: Nâng cấp Locket VIP 60s + 49 Bộ Lọc Camera AI (Photobooth 4 Ô, Xé Túi Mù Nhận Tiền Thật Trúng 50k) Chỉ Từ 75k — Kích Hoạt Tự Động 100%!",
+    "dnsVideoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "dnsTitle": "Hướng Dẫn Cài Đặt Cấu Hình DNS Locket Cho iPhone",
+    "dnsSubtitle": "Chỉ 3 bước nhanh gọn trực tiếp bằng trình duyệt <b>Safari trên iPhone</b> — Hoàn toàn tự động 100%",
+    "dnsStep1Title": "Tải Hồ Sơ Cấu Hình",
+    "dnsStep1Desc": "Sau khi thanh toán hoặc bấm <b>Tra Cứu DNS</b>, mở link bằng <b>trình duyệt Safari</b> trên iPhone ➔ Nhấn <b>Cho Phép</b> khi có thông báo tải về hồ sơ cấu hình (.mobileconfig).",
+    "dnsStep2Title": "Vào Cài Đặt iPhone Duyệt",
+    "dnsStep2Desc": "Mở <b>Cài đặt iPhone</b> ➔ Chọn mục <b>\"Đã tải về hồ sơ\"</b> ngay dưới tên Apple ID (hoặc Cài đặt chung ➔ VPN & Quản lý thiết bị) ➔ Bấm <b>Cài đặt</b> ở góc trên bên phải.",
+    "dnsStep3Title": "Mở Lại Locket & Trải Nghiệm",
+    "dnsStep3Desc": "Mở lại app Locket: Tính năng quay video 60s, upload ảnh không viền và 49+ Filter AI Photobooth sẽ tự động kích hoạt ngay lập tức!"
+  },
+  "adminPassword": "admin123"
+}

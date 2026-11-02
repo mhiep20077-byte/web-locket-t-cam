@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Environment Variables & Secrets
+.env
+*.env
+
+# Runtime databases & sensitive customer records
+data/orders.json
+data/users.json
+data/ctv_users.json
+data/ctv_deposits.json
+data/ctv_customers.json
+data/sessions.json
+data/settings.json
+
+# Thư mục mã nguồn gốc chưa mã hóa (Bảo vệ bí mật công nghệ)
+js_src/
+
+# Logs & System files
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db

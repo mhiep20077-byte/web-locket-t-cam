@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080a0f">
+  <title>TỔ CAM — Cổng Quản Lý &amp; Kích Hoạt Dành Cho CTV / Đại Lý 👑</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%91%91%3C/text%3E%3C/svg%3E">
+
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800;900&family=Nunito:wght@600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap&subset=vietnamese" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    :root {
+      --bg-dark: #080a0f;
+      --bg-card: #121622;
+      --bg-card-hover: #192032;
+      --gold-primary: #F59E0B;
+      --gold-light: #FBBF24;
+      --vip-primary: #8B5CF6;
+      --vip-light: #C084FC;
+      --emerald: #10B981;
+      --rose: #EF4444;
+      --text: #F8FAFC;
+      --text-sub: #94A3B8;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --font-body: 'Nunito', sans-serif;
+      --font-heading: 'Fredoka', sans-serif;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(245, 158, 11, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(139, 92, 246, 0.08) 0%, transparent 45%);
+    }
+
+    .ctv-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 20px 60px 20px;
+      flex: 1;
+    }
+
+    /* Top Nav Header */
+    .ctv-header {
+      background: rgba(18, 22, 34, 0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 14px 22px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      flex-wrap: wrap;
+    }
+
+    .ctv-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .brand-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 800;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--gold-light);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .ctv-user-widget {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .wallet-badge {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #FDE68A;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .wallet-badge b {
+      color: #F59E0B;
+      font-size: 1.05rem;
+    }
+
+    .btn-deposit {
+      background: linear-gradient(135deg, #F59E0B, #D97706);
+      color: #000;
+      font-weight: 800;
+      border: none;
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-deposit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(245, 158, 11, 0.45);
+    }
+
+    .btn-ctv-logout {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #F87171;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-ctv-logout:hover {
+      background: #EF4444;
+      color: #fff;
+    }
+
+    /* Service Switcher Tabs (Locket | Spotify | Lượt Filter AI) */
+    .service-tabs-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .service-tab-btn {
+      padding: 10px 22px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border-subtle);
+      background: rgba(18, 22, 34, 0.7);
+      color: var(--text-sub);
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+    }
+
+    .service-tab-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+
+    .service-tab-btn.active {
+      background: #F59E0B;
+      color: #000;
+      border-color: #F59E0B;
+      font-weight: 800;
+      box-shadow: 0 4px 18px rgba(245, 158, 11, 0.35);
+    }
+
+    .service-tab-btn.active.tab-filter {
+      background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+      border-color: #8B5CF6;
+      color: #fff;
+      box-shadow: 0 4px 18px rgba(139, 92, 246, 0.4);
+    }
+
+    .service-tab-btn.active.tab-spotify {
+      background: #1DB954;
+      border-color: #1DB954;
+      color: #000;
+      box-shadow: 0 4px 18px rgba(29, 185, 84, 0.4);
+    }
+
+    /* Image 3 Styled Cards */
+    .ctv-panel-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 26px;
+      margin-bottom: 24px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.4);
+    }
+
+    .panel-card-title {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dns-actions-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed rgba(245, 158, 11, 0.3);
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .dns-label {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--gold-light);
+    }
+
+    .btn-mini-dns {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-mini-dns:hover {
+      background: rgba(255, 255, 255, 0.16);
+      transform: translateY(-1px);
+    }
+
+    .btn-mini-dns.primary {
+      background: #F59E0B;
+      color: #000;
+      border-color: #F59E0B;
+      font-weight: 800;
+    }
+
+    /* Form Fields */
+    .form-group-ctv {
+      margin-bottom: 18px;
+    }
+
+    .form-group-ctv label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      margin-bottom: 8px;
+    }
+
+    .input-with-action {
+      display: flex;
+      gap: 10px;
+    }
+
+    .ctv-input {
+      flex: 1;
+      height: 48px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 12px;
+      color: #fff;
+      padding: 0 16px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .ctv-input:focus {
+      border-color: var(--gold-primary);
+    }
+
+    .btn-action-input {
+      padding: 0 22px;
+      height: 48px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font-weight: 800;
+      font-size: 13.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .btn-action-input:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .ctv-select {
+      width: 100%;
+      height: 48px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 12px;
+      color: #fff;
+      padding: 0 16px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .ctv-select option {
+      background: #121622;
+      color: #fff;
+      padding: 8px;
+    }
+
+    .actions-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 22px;
+      flex-wrap: wrap;
+    }
+
+    .btn-activate-main {
+      padding: 12px 28px;
+      height: 48px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #F59E0B, #D97706);
+      color: #000;
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 18px rgba(245, 158, 11, 0.35);
+    }
+
+    .btn-activate-main:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.5);
+    }
+
+    .btn-reload-form {
+      padding: 12px 20px;
+      height: 48px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-sub);
+      font-weight: 700;
+      font-size: 13.5px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-reload-form:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    /* Customer Table (Matching Image 3) */
+    .table-responsive {
+      overflow-x: auto;
+      margin-top: 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .ctv-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13.5px;
+      background: rgba(0, 0, 0, 0.25);
+    }
+
+    .ctv-table th {
+      background: rgba(255, 255, 255, 0.04);
+      padding: 14px 16px;
+      color: var(--text-sub);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border-subtle);
+      white-space: nowrap;
+    }
+
+    .ctv-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    .ctv-table tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .cust-avatar-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cust-avatar-img {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: #000;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .uid-badge-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .uid-text {
+      font-family: 'Space Grotesk', monospace;
+      color: #CBD5E1;
+      font-size: 13px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .btn-copy-mini {
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-sub);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-copy-mini:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .badge-active {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34D399;
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-del-cust {
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      background: rgba(239, 68, 68, 0.12);
+      color: #F87171;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-del-cust:hover {
+      background: #EF4444;
+      color: #fff;
+    }
+
+    /* Modal Login & Register Overlay */
+    .ctv-modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(8, 10, 15, 0.88);
+      backdrop-filter: blur(16px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .ctv-auth-card {
+      width: 100%;
+      max-width: 440px;
+      background: #121622;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 24px;
+      padding: 32px 28px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      position: relative;
+    }
+
+    .auth-tabs {
+      display: flex;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px;
+      margin-bottom: 22px;
+    }
+
+    .auth-tab-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 9px;
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .auth-tab-btn.active {
+      background: #F59E0B;
+      color: #000;
+    }
+
+    /* Modal Deposit VietQR */
+    .deposit-modal-card {
+      width: 100%;
+      max-width: 480px;
+      background: #121622;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      position: relative;
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-sub);
+      cursor: pointer;
+    }
+
+    .modal-close-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      color: #EF4444;
+    }
+
+    #toast-msg {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(18, 22, 34, 0.95);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 14px 22px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      font-weight: 700;
+      font-size: 14px;
+      z-index: 10000;
+    }
+    body {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    input, textarea, [contenteditable="true"], code, pre {
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      -ms-user-select: text !important;
+      user-select: text !important;
+    }
+  </style>
+  <script src="js/security-shield.js"></script>
+</head>
+<body>
+
+  <!-- Toast Notification -->
+  <div id="toast-msg"></div>
+
+  <!-- ==================== AUTH MODAL (LOGIN / REGISTER) ==================== -->
+  <div class="ctv-modal-overlay" id="auth-modal" style="display: none;">
+    <div class="ctv-auth-card">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="font-size: 38px; margin-bottom: 6px;">👑</div>
+        <h2 style="font-family: var(--font-heading); font-size: 1.5rem;">CỔNG CỘNG TÁC VIÊN</h2>
+        <p style="color: var(--text-sub); font-size: 0.85rem;">Hệ thống kích hoạt Locket Gold &amp; VIP Pro tự động 24/7</p>
+      </div>
+
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab-btn active" id="btn-tab-login" onclick="switchAuthTab('login')">Đăng Nhập</button>
+        <button type="button" class="auth-tab-btn" id="btn-tab-reg" onclick="switchAuthTab('register')">Đăng Ký CTV</button>
+      </div>
+
+      <!-- FORM ĐĂNG NHẬP -->
+      <form id="form-login" onsubmit="handleCtvLogin(event)">
+        <div class="form-group-ctv">
+          <label>Tên Đăng Nhập:</label>
+          <input type="text" id="login-username" class="ctv-input" placeholder="Nhập tên đăng nhập..." required autocomplete="username">
+        </div>
+        <div class="form-group-ctv">
+          <label>Mật Khẩu:</label>
+          <input type="password" id="login-password" class="ctv-input" placeholder="Nhập mật khẩu..." required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn-activate-main" style="width: 100%; justify-content: center; margin-top: 10px;">
+          <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập Hệ Thống
+        </button>
+      </form>
+
+      <!-- FORM ĐĂNG KÝ -->
+      <form id="form-register" onsubmit="handleCtvRegister(event)" style="display: none;">
+        <div class="form-group-ctv">
+          <label>Tên Đăng Nhập (Viết liền, không dấu):</label>
+          <input type="text" id="reg-username" class="ctv-input" placeholder="Ví dụ: ctv_kienviet" required>
+        </div>
+        <div class="form-group-ctv">
+          <label>Họ &amp; Tên:</label>
+          <input type="text" id="reg-fullname" class="ctv-input" placeholder="Ví dụ: Nguyễn Văn A" required>
+        </div>
+        <div class="form-group-ctv">
+          <label>Số Điện Thoại / Zalo:</label>
+          <input type="text" id="reg-phone" class="ctv-input" placeholder="Ví dụ: 0987654321" required>
+        </div>
+        <div class="form-group-ctv">
+          <label>Mật Khẩu:</label>
+          <input type="password" id="reg-password" class="ctv-input" placeholder="Nhập mật khẩu..." required>
+        </div>
+        <button type="submit" class="btn-activate-main" style="width: 100%; justify-content: center; margin-top: 10px;">
+          <i class="fa-solid fa-user-plus"></i> Đăng Ký Tài Khoản CTV
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="index.html" style="color: var(--text-sub); text-decoration: none; font-size: 13px; font-weight: 700;">
+          <i class="fa-solid fa-arrow-left"></i> Quay lại trang chủ bán lẻ
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL NẠP TIỀN VIETQR ==================== -->
+  <div class="ctv-modal-overlay" id="deposit-modal" style="display: none;">
+    <div class="deposit-modal-card">
+      <button type="button" class="modal-close-btn" onclick="closeDepositModal()"><i class="fa-solid fa-xmark"></i></button>
+
+      <h3 style="font-family: var(--font-heading); font-size: 1.35rem; margin-bottom: 6px;">
+        <i class="fa-solid fa-wallet" style="color: var(--gold-primary);"></i> Nạp Tiền Vào Ví CTV
+      </h3>
+      <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 18px;">
+        Quy đổi: <b>1.000đ = 1 coin</b> • Nạp tiền tự động qua VietQR Napas 24/7
+      </p>
+
+      <!-- Step 1: Chọn số tiền -->
+      <div id="deposit-step-1">
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:8px; color:var(--text-sub);">Chọn hoặc nhập số tiền muốn nạp:</label>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;">
+          <button type="button" class="btn-mini-dns" onclick="selectDepositAmount(50000)">50.000đ</button>
+          <button type="button" class="btn-mini-dns" onclick="selectDepositAmount(100000)">100.000đ</button>
+          <button type="button" class="btn-mini-dns primary" onclick="selectDepositAmount(200000)">200.000đ</button>
+        </div>
+        <input type="number" id="deposit-custom-amount" class="ctv-input" placeholder="Hoặc nhập số tiền khác (Tối thiểu 10.000đ)..." style="margin-bottom: 16px;">
+        <button type="button" class="btn-activate-main" style="width: 100%; justify-content: center;" onclick="createDepositQR()">
+          <i class="fa-solid fa-qrcode"></i> Tạo Mã VietQR Nạp Tiền
+        </button>
+      </div>
+
+      <!-- Step 2: Hiển thị VietQR -->
+      <div id="deposit-step-2" style="display: none; text-align: center;">
+        <img id="deposit-qr-img" src="" alt="VietQR" style="max-width: 230px; border-radius: 14px; margin: 0 auto 14px auto; display: block; border: 2px solid rgba(245,158,11,0.4);">
+        <div style="background: rgba(0,0,0,0.4); border-radius: 12px; padding: 14px; text-align: left; font-size: 13px; margin-bottom: 14px; border: 1px solid var(--border-subtle);">
+          <div style="margin-bottom: 6px;">Ngân hàng: <b id="dep-bank-name">VPBank</b></div>
+          <div style="margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <div>Số tài khoản: <b id="dep-bank-acc" style="color: #FDE68A; font-size: 14px;">2027022007</b></div>
+            <button type="button" class="btn-copy-mini" onclick="copyText(document.getElementById('dep-bank-acc').innerText)"><i class="fa-solid fa-copy"></i> Sao chép</button>
+          </div>
+          <div style="margin-bottom: 6px;">Chủ tài khoản: <b>NGUYEN MINH HIEP</b></div>
+          <div style="margin-bottom: 6px;">Số tiền: <b id="dep-amount-val" style="color: var(--gold-light); font-size: 14px;">100.000đ</b></div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <div>Nội dung CK: <code id="dep-memo-val" style="color: #FDE68A; background: rgba(255,255,255,0.15); padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: 14px;">NAP...</code></div>
+            <button type="button" class="btn-copy-mini" onclick="copyText(document.getElementById('dep-memo-val').innerText)"><i class="fa-solid fa-copy"></i> Sao chép</button>
+          </div>
+        </div>
+        <p style="font-size: 12px; color: var(--emerald); font-weight: 700;">
+          <i class="fa-solid fa-spinner fa-spin"></i> Chuyển khoản xong hệ thống sẽ tự động cộng số dư vào ví!
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN CTV PORTAL (MATCHING IMAGE 3) ==================== -->
+  <div class="ctv-container">
+
+    <!-- Top Header -->
+    <header class="ctv-header">
+      <a href="ctv.html" class="ctv-brand">
+        <div class="brand-badge">👑</div>
+        <div>
+          <div class="brand-title">TỔ CAM — CỔNG CTV</div>
+          <div class="brand-sub">HỆ THỐNG KÍCH HOẠT &amp; QUẢN LÝ KHÁCH HÀNG</div>
+        </div>
+      </a>
+
+      <div class="ctv-user-widget">
+        <div class="wallet-badge">
+          <i class="fa-solid fa-coins" style="color: var(--gold-primary);"></i>
+          <span>Số dư: <b id="ui-ctv-coins">0</b> coin (<span id="ui-ctv-vnd">0đ</span>)</span>
+        </div>
+        <button type="button" class="btn-deposit" onclick="openDepositModal()">
+          <i class="fa-solid fa-plus"></i> Nạp Tiền
+        </button>
+        <span style="font-size: 13px; font-weight: 800; color: #CBD5E1;" id="ui-ctv-username">@ctv</span>
+        <button type="button" class="btn-ctv-logout" onclick="handleCtvLogout()">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng Xuất
+        </button>
+      </div>
+    </header>
+
+    <!-- Service Tabs (Locket Gold Thường | Locket Gold VIP | Spotify) -->
+    <div class="service-tabs-bar" id="service-tabs-container">
+      <button type="button" class="service-tab-btn active" id="tab-btn-locket" onclick="switchServiceTab('locket')">
+        <i class="fa-solid fa-camera"></i> Locket Gold Thường
+      </button>
+      <button type="button" class="service-tab-btn tab-filter" id="tab-btn-filter" onclick="switchServiceTab('filter')">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Locket Gold VIP
+      </button>
+      <button type="button" class="service-tab-btn tab-spotify" id="tab-btn-spotify" onclick="switchServiceTab('spotify')">
+        <i class="fa-brands fa-spotify"></i> Spotify
+      </button>
+    </div>
+
+    <!-- ==================== CARD 1: QUẢN LÝ UID LOCKET (IMAGE 3) ==================== -->
+    <div class="ctv-panel-card">
+      <div class="panel-card-title">
+        <i class="fa-solid fa-bolt" style="color: var(--gold-primary);"></i>
+        <span id="panel-card-heading">Quản lý UID Locket — nhập username, tự tra UID</span>
+      </div>
+
+      <!-- Tải DNS bar -->
+      <div class="dns-actions-bar">
+        <span class="dns-label">Tải dns:</span>
+        <a href="/api/profile/download" class="btn-mini-dns primary" id="btn-download-dns" target="_blank">
+          <i class="fa-brands fa-safari"></i> Tải DNS
+        </a>
+        <button type="button" class="btn-mini-dns" onclick="copyDnsLink()">
+          <i class="fa-solid fa-copy"></i> Lấy link DNS
+        </button>
+        <span style="font-size: 12px; color: var(--text-sub); margin-left: auto;">
+          💡 Gửi link DNS cho khách cài đặt qua trình duyệt Safari trên iPhone
+        </span>
+      </div>
+
+      <!-- Ô nhập username khách -->
+      <div class="form-group-ctv">
+        <label>Username Locket của khách:</label>
+        <div class="input-with-action">
+          <input type="text" id="cust-username-input" class="ctv-input" placeholder="ví dụ: cuccam (không cần @)..." autocomplete="off" spellcheck="false">
+          <button type="button" class="btn-action-input" onclick="handleCtvLookupUid()">
+            <i class="fa-solid fa-magnifying-glass"></i> Tra UID
+          </button>
+        </div>
+      </div>
+
+      <!-- Khung xem thông tin khách đã tra cứu (UID, Avatar, Name) -->
+      <div id="cust-preview-box" style="display: none; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; align-items: center; gap: 14px;">
+        <img id="cust-preview-avatar" src="" alt="Avatar" style="width: 44px; height: 44px; border-radius: 10px; object-fit: cover; border: 1px solid rgba(245,158,11,0.4);">
+        <div>
+          <b id="cust-preview-fullname" style="font-size: 14.5px; color: #fff;">Nguyễn Văn A</b>
+          <div style="font-size: 12px; color: var(--text-sub);">Username: <span id="cust-preview-user" style="color: var(--gold-light);">@user</span> • UID: <code id="cust-preview-uid" style="color: #FDE68A;">...</code></div>
+        </div>
+      </div>
+
+      <!-- Dropdown Chọn Gói Locket / Filter -->
+      <div class="form-group-ctv">
+        <label id="label-select-plan">Gói Locket:</label>
+        <select id="ctv-plan-select" class="ctv-select" onchange="updatePurchaseButtonText()">
+          <!-- Dynamic injected wholesale plans -->
+        </select>
+      </div>
+
+      <!-- Action Row -->
+      <div class="actions-row">
+        <button type="button" class="btn-activate-main" id="btn-submit-activate" onclick="executeCtvActivation()">
+          <i class="fa-solid fa-cart-shopping"></i> <span id="btn-activate-text">Mua / Gia hạn — 1 coin</span>
+        </button>
+        <button type="button" class="btn-reload-form" onclick="resetActivationForm()">
+          <i class="fa-solid fa-rotate-left"></i> Tải lại
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== CARD 2: LỌC DANH SÁCH (IMAGE 3) ==================== -->
+    <div class="ctv-panel-card">
+      <div class="panel-card-title">
+        <i class="fa-solid fa-filter" style="color: var(--vip-light);"></i>
+        <span>Lọc danh sách (Locket)</span>
+      </div>
+
+      <div class="input-with-action">
+        <input type="text" id="search-cust-input" class="ctv-input" placeholder="Tìm theo UID khách hoặc username Locket..." onkeyup="filterCustomersTable()">
+        <button type="button" class="btn-action-input" onclick="filterCustomersTable()">
+          <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+        </button>
+      </div>
+
+      <!-- Bảng danh sách khách hàng -->
+      <div class="table-responsive">
+        <table class="ctv-table">
+          <thead>
+            <tr>
+              <th>KHÁCH</th>
+              <th>UID</th>
+              <th>TRẠNG THÁI</th>
+              <th>HẾT HẠN</th>
+              <th>LAST SEEN</th>
+              <th>HÀNH ĐỘNG</th>
+            </tr>
+          </thead>
+          <tbody id="ctv-customers-tbody">
+            <!-- Dynamic injected customers -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/ctv.js"></script>
+</body>
+</html>
+

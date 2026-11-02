@@ -308,6 +308,8 @@ app.get('/api/config/public', (req, res) => {
     hotline: settings.hotline || '0386.116.104',
     zaloUrl: settings.zaloUrl || 'https://zalo.me/0386116104',
     supportGroupUrl: settings.supportGroupUrl || 'https://zalo.me/0386116104',
+    zaloGroup1Url: settings.zaloGroup1Url || 'https://zalo.me/g/shprtxgdepc6wscxwmtg',
+    zaloGroup2Url: settings.zaloGroup2Url || 'https://zalo.me/g/qyke3ds1tqzjwudjznrc',
     marqueeNotice: settings.marqueeNotice || '',
     bankInfo: settings.bankInfo || {
       bankId: 'VPBANK',

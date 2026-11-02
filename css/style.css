@@ -1590,3 +1590,102 @@ body {
     font-size: 0.85rem;
   }
 }
+
+/* ============================================================
+   DNS GUIDE (4 BƯỚC SAFARI CHUẨN MỚI)
+   ============================================================ */
+.dns-instructions-card {
+  background: #0B0F19;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 24px 28px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+}
+
+.safari-warning-box {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+}
+
+.safari-warning-title {
+  color: #FBBF24;
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.safari-warning-desc {
+  color: #CBD5E1;
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin-left: 24px;
+}
+
+.dns-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dns-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.step-num-badge {
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  border-radius: 50%;
+  background: #1E293B;
+  color: #94A3B8;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.step-content {
+  flex: 1;
+}
+
+.step-title {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0 0 5px 0;
+  font-family: var(--font-heading);
+}
+
+.step-desc {
+  font-size: 13.5px;
+  color: #94A3B8;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.step-desc b {
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+.ios-path-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  padding: 1px 7px;
+  color: #E2E8F0;
+  font-size: 13px;
+  margin: 0 2px;
+}

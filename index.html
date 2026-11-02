@@ -396,15 +396,51 @@
           </p>
         </div>
 
-        <div style="background: rgba(10, 13, 20, 0.85); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 24px;">
-          <h4 style="font-family: var(--font-heading); color: #fff; font-size: 1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-circle-info" style="color: var(--emerald);"></i> Hướng Dẫn Cài Đặt DNS (3 Bước):
-          </h4>
-          <ol style="padding-left: 20px; color: #CBD5E1; font-size: 0.9rem; line-height: 1.6;">
-            <li>Bấm nút <b>"Tải Hồ Sơ DNS (.mobileconfig)"</b> bên dưới bằng <b>trình duyệt Safari</b> trên iPhone.</li>
-            <li>Vào <b>Cài đặt iPhone</b> ➔ <b>Đã tải về hồ sơ</b> (hoặc Cài đặt chung ➔ VPN &amp; Quản lý thiết bị) ➔ Bấm <b>Cài đặt</b>.</li>
-            <li>Mở lại app Locket: Tận hưởng ngay tính năng <b>quay video 60s</b> và <b>49+ bộ lọc camera AI</b> độc quyền!</li>
-          </ol>
+        <div style="background: rgba(10, 13, 20, 0.95); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 22px; margin-bottom: 24px; text-align: left;">
+          <!-- Cảnh báo Safari -->
+          <div class="safari-warning-box">
+            <div class="safari-warning-title">
+              <i class="fa-solid fa-triangle-exclamation"></i> Bắt buộc dùng Safari
+            </div>
+            <div class="safari-warning-desc">
+              Chrome và trình duyệt khác không tải được file cấu hình.
+            </div>
+          </div>
+
+          <!-- 4 Bước hướng dẫn cài đặt -->
+          <div class="dns-steps-list">
+            <div class="dns-step-item">
+              <div class="step-num-badge">1</div>
+              <div class="step-content">
+                <h4 class="step-title">Tải file cấu hình</h4>
+                <p class="step-desc">Dán link vào Safari → Safari hỏi tải tệp cấu hình → bấm <b>Cho phép</b>.</p>
+              </div>
+            </div>
+
+            <div class="dns-step-item">
+              <div class="step-num-badge">2</div>
+              <div class="step-content">
+                <h4 class="step-title">Cài profile</h4>
+                <p class="step-desc">Vào <span class="ios-path-badge">Cài đặt → Cài đặt chung → Quản lý VPN và thiết bị</span> → chọn <b>LocketGold</b> → <b>Cài đặt</b> → nhập mật khẩu iPhone → xác nhận lần nữa.</p>
+              </div>
+            </div>
+
+            <div class="dns-step-item">
+              <div class="step-num-badge">3</div>
+              <div class="step-content">
+                <h4 class="step-title">Bật tin cậy chứng chỉ (bắt buộc)</h4>
+                <p class="step-desc">Vào <span class="ios-path-badge">Cài đặt chung → Giới thiệu → Cài đặt tin cậy chứng chỉ</span> → bật công tắc <b>LocketGold</b> → <b>Tiếp tục</b>. Bỏ qua bước này Locket sẽ không nhận Gold.</p>
+              </div>
+            </div>
+
+            <div class="dns-step-item">
+              <div class="step-num-badge">4</div>
+              <div class="step-content">
+                <h4 class="step-title">Mở lại Locket và kiểm tra</h4>
+                <p class="step-desc">Tắt hẳn app rồi mở lại, vào Hồ sơ: thấy huy hiệu / khung Gold là thành công. Vẫn thấy quảng cáo → kiểm tra lại bước 3.</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -426,7 +462,7 @@
         <span class="section-tag" style="color: var(--blue-primary);"><i class="fa-solid fa-shield-halved"></i> CHUẨN APPLE DOH BẢO MẬT</span>
         <h2 class="section-title" id="dns-guide-title">Hướng Dẫn Cài Đặt Cấu Hình DNS Locket</h2>
         <p id="dns-guide-subtitle" style="color: var(--text-sub); font-size: 0.95rem; margin-top: 8px;">
-          Chỉ 3 bước nhanh gọn trực tiếp bằng trình duyệt <b>Safari trên iPhone</b> — Hoàn toàn tự động 100%
+          Chỉ 4 bước nhanh gọn trực tiếp bằng trình duyệt <b>Safari trên iPhone</b> — Hoàn toàn tự động 100%
         </p>
       </div>
 
@@ -448,35 +484,63 @@
         </div>
       </div>
 
-      <div class="dns-steps-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 24px;">
-        <!-- Bước 1 -->
-        <div class="bento-card" style="position: relative;">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(37, 99, 235, 0.15); color: var(--blue-primary); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; margin-bottom: 16px;">1</div>
-          <h4 id="dns-step1-title" style="font-family: var(--font-heading); font-size: 1.15rem; margin-bottom: 8px;">Tải Hồ Sơ Cấu Hình</h4>
-          <p id="dns-step1-desc" style="color: var(--text-sub); font-size: 0.88rem; line-height: 1.5;">
-            Sau khi thanh toán hoặc bấm <b>Tra Cứu DNS</b>, mở link bằng <b>trình duyệt Safari</b> trên iPhone ➔ Nhấn <b>Cho Phép</b> khi có thông báo tải về hồ sơ cấu hình (.mobileconfig).
-          </p>
-          <div id="dns-step1-note" style="margin-top: 14px; font-size: 12px; color: var(--blue-primary); font-weight: 700;"><i class="fa-brands fa-safari"></i> Bắt buộc mở bằng Safari</div>
+      <!-- Khung 4 Bước Hướng Dẫn Cài Đặt DNS Chuẩn Mới -->
+      <div class="dns-instructions-card" style="max-width: 800px; margin: 0 auto; text-align: left;">
+        <!-- Cảnh báo Safari -->
+        <div class="safari-warning-box">
+          <div class="safari-warning-title">
+            <i class="fa-solid fa-triangle-exclamation"></i> Bắt buộc dùng Safari
+          </div>
+          <div class="safari-warning-desc">
+            Chrome và trình duyệt khác không tải được file cấu hình.
+          </div>
         </div>
 
-        <!-- Bước 2 -->
-        <div class="bento-card" style="position: relative;">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(37, 99, 235, 0.15); color: var(--blue-primary); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; margin-bottom: 16px;">2</div>
-          <h4 id="dns-step2-title" style="font-family: var(--font-heading); font-size: 1.15rem; margin-bottom: 8px;">Vào Cài Đặt iPhone Duyệt</h4>
-          <p id="dns-step2-desc" style="color: var(--text-sub); font-size: 0.88rem; line-height: 1.5;">
-            Mở <b>Cài đặt iPhone</b> ➔ Chọn mục <b>"Đã tải về hồ sơ"</b> ngay dưới tên Apple ID (hoặc Cài đặt chung ➔ VPN &amp; Quản lý thiết bị) ➔ Bấm <b>Cài đặt</b> ở góc trên bên phải.
-          </p>
-          <div id="dns-step2-note" style="margin-top: 14px; font-size: 12px; color: var(--blue-primary); font-weight: 700;"><i class="fa-solid fa-lock"></i> Chuẩn Apple DoH bảo mật 100%</div>
-        </div>
+        <!-- 4 Bước Hướng Dẫn Chi Tiết -->
+        <div class="dns-steps-list">
+          <!-- Bước 1 -->
+          <div class="dns-step-item">
+            <div class="step-num-badge">1</div>
+            <div class="step-content">
+              <h4 class="step-title" id="dns-step1-title">Tải file cấu hình</h4>
+              <p class="step-desc" id="dns-step1-desc">
+                Dán link vào Safari → Safari hỏi tải tệp cấu hình → bấm <b>Cho phép</b>.
+              </p>
+            </div>
+          </div>
 
-        <!-- Bước 3 -->
-        <div class="bento-card" style="position: relative;">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); color: #10B981; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; margin-bottom: 16px;">3</div>
-          <h4 id="dns-step3-title" style="font-family: var(--font-heading); font-size: 1.15rem; margin-bottom: 8px;">Mở Lại Locket &amp; Trải Nghiệm</h4>
-          <p id="dns-step3-desc" style="color: var(--text-sub); font-size: 0.88rem; line-height: 1.5;">
-            Mở lại app Locket: Tính năng quay video 60s, upload ảnh không viền và 49+ Filter AI Photobooth sẽ tự động kích hoạt ngay lập tức!
-          </p>
-          <div id="dns-step3-note" style="margin-top: 14px; font-size: 12px; color: #10B981; font-weight: 700;"><i class="fa-solid fa-circle-check"></i> Kích hoạt vĩnh viễn theo gói</div>
+          <!-- Bước 2 -->
+          <div class="dns-step-item">
+            <div class="step-num-badge">2</div>
+            <div class="step-content">
+              <h4 class="step-title" id="dns-step2-title">Cài profile</h4>
+              <p class="step-desc" id="dns-step2-desc">
+                Vào <span class="ios-path-badge">Cài đặt → Cài đặt chung → Quản lý VPN và thiết bị</span> → chọn <b>LocketGold</b> → <b>Cài đặt</b> → nhập mật khẩu iPhone → xác nhận lần nữa.
+              </p>
+            </div>
+          </div>
+
+          <!-- Bước 3 -->
+          <div class="dns-step-item">
+            <div class="step-num-badge">3</div>
+            <div class="step-content">
+              <h4 class="step-title" id="dns-step3-title">Bật tin cậy chứng chỉ (bắt buộc)</h4>
+              <p class="step-desc" id="dns-step3-desc">
+                Vào <span class="ios-path-badge">Cài đặt chung → Giới thiệu → Cài đặt tin cậy chứng chỉ</span> → bật công tắc <b>LocketGold</b> → <b>Tiếp tục</b>. Bỏ qua bước này Locket sẽ không nhận Gold.
+              </p>
+            </div>
+          </div>
+
+          <!-- Bước 4 -->
+          <div class="dns-step-item">
+            <div class="step-num-badge">4</div>
+            <div class="step-content">
+              <h4 class="step-title" id="dns-step4-title">Mở lại Locket và kiểm tra</h4>
+              <p class="step-desc" id="dns-step4-desc">
+                Tắt hẳn app rồi mở lại, vào Hồ sơ: thấy huy hiệu / khung Gold là thành công. Vẫn thấy quảng cáo → kiểm tra lại bước 3.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

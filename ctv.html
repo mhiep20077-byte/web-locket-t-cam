@@ -723,12 +723,13 @@
       <!-- Step 1: Chọn số tiền -->
       <div id="deposit-step-1">
         <label style="display:block; font-size:13px; font-weight:700; margin-bottom:8px; color:var(--text-sub);">Chọn hoặc nhập số tiền muốn nạp:</label>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;">
-          <button type="button" class="btn-mini-dns" onclick="selectDepositAmount(50000)">50.000đ</button>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;">
+          <button type="button" class="btn-mini-dns primary" onclick="selectDepositAmount(50000)">50.000đ</button>
           <button type="button" class="btn-mini-dns" onclick="selectDepositAmount(100000)">100.000đ</button>
-          <button type="button" class="btn-mini-dns primary" onclick="selectDepositAmount(200000)">200.000đ</button>
+          <button type="button" class="btn-mini-dns" onclick="selectDepositAmount(200000)">200.000đ</button>
+          <button type="button" class="btn-mini-dns" onclick="selectDepositAmount(500000)">500.000đ</button>
         </div>
-        <input type="number" id="deposit-custom-amount" class="ctv-input" placeholder="Hoặc nhập số tiền khác (Tối thiểu 10.000đ)..." style="margin-bottom: 16px;">
+        <input type="number" id="deposit-custom-amount" class="ctv-input" placeholder="Hoặc nhập số tiền khác (Tối thiểu 50.000đ)..." min="50000" style="margin-bottom: 16px;">
         <button type="button" class="btn-activate-main" style="width: 100%; justify-content: center;" onclick="createDepositQR()">
           <i class="fa-solid fa-qrcode"></i> Tạo Mã VietQR Nạp Tiền
         </button>

@@ -1529,8 +1529,8 @@ app.get('/api/ctv/me', requireCtv, (req, res) => {
 app.post('/api/ctv/deposit/create', requireCtv, (req, res) => {
   const { amount } = req.body || {};
   const numAmount = parseInt(amount, 10);
-  if (!numAmount || numAmount < 10000) {
-    return res.status(400).json({ ok: false, message: 'Số tiền nạp tối thiểu là 10.000đ!' });
+  if (!numAmount || numAmount < 50000) {
+    return res.status(400).json({ ok: false, message: 'Số tiền nạp tối thiểu là 50.000đ (50k)!' });
   }
 
   const settings = loadSettings();

@@ -1684,33 +1684,51 @@ body {
 }
 
 @media (max-width: 600px) {
+  .container {
+    padding: 0 12px;
+  }
+
   .wizard-card {
-    padding: 24px 18px;
+    padding: 20px 14px !important;
+    border-radius: 18px !important;
   }
 
   .top-nav {
     border-radius: var(--radius-lg);
-    padding: 8px 14px;
+    padding: 8px 12px;
+    margin: 8px auto 18px auto;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: space-between;
     gap: 8px;
+    position: sticky;
+    top: 6px;
   }
 
   .nav-brand {
-    width: 100%;
-    justify-content: center;
+    width: auto;
+    justify-content: flex-start;
   }
 
   .nav-actions {
     width: 100%;
-    justify-content: center;
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 2px 0 4px 0;
     gap: 6px;
+    justify-content: flex-start;
+    scrollbar-width: none;
+  }
+
+  .nav-actions::-webkit-scrollbar {
+    display: none;
   }
 
   .btn-chip {
-    min-height: 40px;
-    padding: 7px 10px;
-    font-size: 0.8rem;
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding: 6px 12px;
+    font-size: 0.82rem;
   }
 
   .hero-title {
@@ -1718,8 +1736,43 @@ body {
   }
 
   .switch-btn {
-    padding: 10px 18px;
+    padding: 10px 14px;
     font-size: 0.85rem;
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .mode-switch-container {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .plans-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .plan-card {
+    padding: 22px 18px !important;
+  }
+
+  .plan-price {
+    font-size: 2.1rem !important;
+  }
+
+  .payment-qr-img {
+    max-width: 240px !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .bento-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .bento-card-wide {
+    grid-column: span 1 !important;
   }
 }
 

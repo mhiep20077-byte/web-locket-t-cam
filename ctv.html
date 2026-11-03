@@ -661,6 +661,145 @@
       -ms-user-select: text !important;
       user-select: text !important;
     }
+
+    /* ============================================================
+       RESPONSIVE MOBILE CHO TRANG CTV & ĐẠI LÝ
+       ============================================================ */
+    @media (max-width: 768px) {
+      .ctv-container {
+        padding: 10px 12px 60px 12px;
+      }
+
+      .ctv-header {
+        padding: 14px 14px;
+        margin-bottom: 16px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .ctv-header-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+      }
+
+      .ctv-user-widget {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .wallet-badge {
+        width: 100%;
+        justify-content: center;
+        padding: 8px 10px;
+        font-size: 12.5px;
+      }
+
+      .btn-deposit {
+        grid-column: span 2;
+        width: 100%;
+        justify-content: center;
+        height: 44px;
+      }
+
+      .service-tabs {
+        gap: 6px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+      }
+
+      .service-tab-btn {
+        flex: 1 0 auto;
+        padding: 10px 14px;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      .ctv-card {
+        padding: 18px 14px;
+        border-radius: 16px;
+        margin-bottom: 16px;
+      }
+
+      .card-header-title {
+        font-size: 1.15rem;
+      }
+
+      .input-with-action {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .btn-action-input {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .actions-row {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .btn-activate-main {
+        width: 100%;
+        justify-content: center;
+        height: 50px;
+      }
+
+      .btn-reload-form {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .dns-actions-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px 14px;
+        gap: 8px;
+      }
+
+      .dns-actions-bar div {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+      }
+
+      .btn-mini-dns {
+        flex: 1;
+        justify-content: center;
+      }
+
+      .deposit-modal-card,
+      .ctv-auth-card {
+        padding: 22px 16px;
+        border-radius: 20px;
+        max-width: 95vw;
+      }
+
+      .qr-deposit-img {
+        max-width: 220px !important;
+        height: auto !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .ctv-user-widget {
+        grid-template-columns: 1fr;
+      }
+
+      .wallet-badge {
+        grid-column: span 1;
+      }
+
+      .btn-deposit {
+        grid-column: span 1;
+      }
+    }
   </style>
   <script src="js/security-shield.js"></script>
 </head>
@@ -807,13 +946,21 @@
 
     <!-- Top Header -->
     <header class="ctv-header">
-      <a href="ctv.html" class="ctv-brand">
-        <div class="brand-badge">👑</div>
-        <div>
-          <div class="brand-title">TỔ CAM — CỔNG CTV</div>
-          <div class="brand-sub">HỆ THỐNG KÍCH HOẠT &amp; QUẢN LÝ KHÁCH HÀNG</div>
+      <div class="ctv-header-top">
+        <a href="ctv.html" class="ctv-brand">
+          <div class="brand-badge">👑</div>
+          <div>
+            <div class="brand-title">TỔ CAM — CỔNG CTV</div>
+            <div class="brand-sub">HỆ THỐNG KÍCH HOẠT &amp; QUẢN LÝ KHÁCH HÀNG</div>
+          </div>
+        </a>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 13px; font-weight: 800; color: #CBD5E1;" id="ui-ctv-username">@ctv</span>
+          <button type="button" class="btn-ctv-logout" onclick="handleCtvLogout()" title="Đăng Xuất">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Đăng Xuất</span>
+          </button>
         </div>
-      </a>
+      </div>
 
       <div class="ctv-user-widget">
         <div class="wallet-badge">
@@ -822,10 +969,6 @@
         </div>
         <button type="button" class="btn-deposit" onclick="openDepositModal()">
           <i class="fa-solid fa-plus"></i> Nạp Tiền
-        </button>
-        <span style="font-size: 13px; font-weight: 800; color: #CBD5E1;" id="ui-ctv-username">@ctv</span>
-        <button type="button" class="btn-ctv-logout" onclick="handleCtvLogout()">
-          <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng Xuất
         </button>
       </div>
     </header>

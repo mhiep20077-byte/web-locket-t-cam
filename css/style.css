@@ -1077,6 +1077,7 @@ body {
    ============================================================ */
 .checkout-section {
   padding: 30px 0 80px 0;
+  scroll-margin-top: 110px;
 }
 
 .stepper-bar {
@@ -1210,6 +1211,50 @@ body {
 .wizard-desc {
   font-size: 0.88rem;
   color: var(--text-sub);
+}
+
+.wizard-desc.selected-plan-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 16px;
+  border: 1px solid;
+  border-radius: 12px;
+}
+
+.selected-plan-summary.is-vip {
+  color: #6D28D9;
+  background: rgba(139, 92, 246, 0.08);
+  border-color: rgba(139, 92, 246, 0.32);
+}
+
+.selected-plan-summary.is-regular {
+  color: #92400E;
+  background: rgba(245, 158, 11, 0.09);
+  border-color: rgba(245, 158, 11, 0.34);
+}
+
+.selected-plan-kicker {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-sub);
+}
+
+.selected-plan-name {
+  max-width: 100%;
+  color: #0F172A;
+  font-size: 1.05rem;
+  font-weight: 900;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.selected-plan-price {
+  font-size: 0.95rem;
+  font-weight: 800;
 }
 
 /* Username input group */
@@ -1605,6 +1650,10 @@ body {
    RESPONSIVE DESIGN (MOBILE / TABLET)
    ============================================================ */
 @media (max-width: 1200px) {
+
+  .checkout-section {
+    scroll-margin-top: 180px;
+  }
 
   .bento-col-7,
   .bento-col-5,

@@ -1178,12 +1178,17 @@ app.all([
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body || {};
   const settings = loadSettings();
-  const currentPass = settings.adminPassword || 'admin123';
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
+  const currentPass = process.env.ADMIN_PASSWORD || settings.adminPassword || (isProduction ? '' : 'admin123');
+
+  if (!currentPass) {
+    return res.status(503).json({ ok: false, message: 'Chưa cấu hình ADMIN_PASSWORD trên server!' });
+  }
 
   if (password === currentPass) {
     const token = `admin_tk_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
     activeAdminTokens.add(token);
-    console.log('[ADMIN] ✅ Đăng nhập thành công, token tạo mới:', token);
+    console.log('[ADMIN] ✅ Đăng nhập thành công.');
     return res.json({ ok: true, token: token });
   }
 
@@ -2135,7 +2140,6 @@ async function startServer() {
 👑 TỔ CAM — LOCKET VIP & LOCKET GOLD SYSTEM V2
 🌐 Server đang chạy tại: http://localhost:${PORT}
 🔐 Trang Quản Trị Admin: http://localhost:${PORT}/admin
-⚡ Mật khẩu Admin mặc định: admin123
 ============================================================
       `);
     });

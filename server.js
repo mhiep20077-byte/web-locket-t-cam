@@ -14,6 +14,7 @@ const fs = require('fs');
 const plist = require('plist');
 const https = require('https');
 const http = require('http');
+const crypto = require('crypto');
 
 require('dotenv').config();
 
@@ -318,12 +319,74 @@ function personalizeMobileConfig(buffer, username) {
 // ============================================================
 app.disable('x-powered-by');
 
+// Cookie helper
+function getCookie(req, name) {
+  const cookieHeader = req.headers['cookie'];
+  if (!cookieHeader) return null;
+  const match = cookieHeader.match(new RegExp('(?:^|;\\s*)' + name.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&') + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+// Anti Brute-Force Tracker (IP-based)
+const failedLoginAttempts = new Map();
+
+function checkBruteForce(ip) {
+  const record = failedLoginAttempts.get(ip);
+  if (!record) return { allowed: true };
+  if (record.lockedUntil && Date.now() < record.lockedUntil) {
+    const remainingMin = Math.max(1, Math.ceil((record.lockedUntil - Date.now()) / 60000));
+    return {
+      allowed: false,
+      message: `Hệ thống tạm khóa do nhập sai mật khẩu quá 5 lần. Vui lòng thử lại sau ${remainingMin} phút.`
+    };
+  }
+  if (record.lockedUntil && Date.now() >= record.lockedUntil) {
+    failedLoginAttempts.delete(ip);
+    return { allowed: true };
+  }
+  return { allowed: true };
+}
+
+function recordFailedLogin(ip) {
+  const record = failedLoginAttempts.get(ip) || { count: 0, lockedUntil: null };
+  record.count += 1;
+  if (record.count >= 5) {
+    record.lockedUntil = Date.now() + 15 * 60 * 1000; // Khóa 15 phút
+  }
+  failedLoginAttempts.set(ip, record);
+}
+
+function recordSuccessfulLogin(ip) {
+  failedLoginAttempts.delete(ip);
+}
+
+// Token extraction & Auth Check
+function extractAdminToken(req) {
+  const authHeader = req.headers['authorization'] || '';
+  const headerToken = authHeader.replace(/^Bearer\s+/i, '').trim() || req.headers['x-admin-token'];
+  const cookieToken = getCookie(req, 'admin_session');
+  return headerToken || cookieToken || '';
+}
+
+function isAdminAuthenticated(req) {
+  const token = extractAdminToken(req);
+  if (!token) return false;
+  if (activeAdminTokens.has(token)) return true;
+  const saved = loadSessions();
+  if (saved.has(token)) {
+    activeAdminTokens.add(token);
+    return true;
+  }
+  return false;
+}
+
 // Security HTTP Headers
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   next();
 });
 
@@ -352,6 +415,14 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// BẢO VỆ MÃ NGUỒN ADMIN JS KHỎI XEM TRÁI PHÉP
+app.get(['/js/admin.js', '/admin.js'], (req, res, next) => {
+  if (!isAdminAuthenticated(req)) {
+    return res.status(403).type('application/javascript').send('/* Access Denied: 403 Forbidden. Vui lòng đăng nhập quản trị viên. */');
+  }
+  next();
+});
+
 // Static files
 app.use('/css', express.static(path.join(ROOT_DIR, 'css')));
 app.use('/js', express.static(path.join(ROOT_DIR, 'js')));
@@ -362,30 +433,31 @@ app.get(['/', '/index.html', '/gold', '/gold.html'], (req, res) => {
   res.sendFile(path.join(ROOT_DIR, 'index.html'));
 });
 
+// Route /admin bảo mật tuyệt đối: chỉ phục vụ admin.html khi đã xác thực, ngược lại phục vụ admin-login.html
 app.get(['/admin', '/admin.html'], (req, res) => {
-  res.sendFile(path.join(ROOT_DIR, 'admin.html'));
+  if (isAdminAuthenticated(req)) {
+    res.sendFile(path.join(ROOT_DIR, 'admin.html'));
+  } else {
+    res.sendFile(path.join(ROOT_DIR, 'admin-login.html'));
+  }
 });
 
 app.get(['/ctv', '/ctv.html'], (req, res) => {
   res.sendFile(path.join(ROOT_DIR, 'ctv.html'));
 });
 
-// Admin Auth Middleware
+// Admin Auth Middleware (Xác thực API tuyệt đối, xóa bỏ hoàn toàn lỗ hổng token rác)
 async function requireAdmin(req, res, next) {
-  const authHeader = req.headers['authorization'] || '';
-  const token = authHeader.replace(/^Bearer\s+/i, '').trim() || req.headers['x-admin-token'];
+  const token = extractAdminToken(req);
   if (!token) {
-    return res.status(401).json({ ok: false, error: 'Chưa đăng nhập!' });
+    return res.status(401).json({ ok: false, error: 'Chưa đăng nhập quản trị viên!' });
   }
   if (!activeAdminTokens.has(token)) {
     const saved = loadSessions();
-    if (saved.has(token) || token.startsWith('admin_token_')) {
+    if (saved.has(token)) {
       activeAdminTokens.add(token);
-      if (!(await saveSessions(activeAdminTokens))) {
-        return res.status(500).json({ ok: false, error: 'Không thể lưu phiên admin!' });
-      }
     } else {
-      return res.status(401).json({ ok: false, error: 'Chưa đăng nhập hoặc phiên làm việc đã hết hạn!' });
+      return res.status(401).json({ ok: false, error: 'Phiên làm việc đã hết hạn hoặc không hợp lệ!' });
     }
   }
   next();
@@ -1214,11 +1286,17 @@ app.all([
 });
 
 // ============================================================
-// 6. ADMIN API (BẢO VỆ MẬT KHẨU)
+// 6. ADMIN API (BẢO VỆ MẬT KHẨU & PHIÊN LÀM VIỆC CAO CẤP)
 // ============================================================
 
 // Đăng nhập Admin
-app.post('/api/admin/login', (req, res) => {
+app.post('/api/admin/login', async (req, res) => {
+  const clientIp = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket?.remoteAddress || 'unknown';
+  const bruteCheck = checkBruteForce(clientIp);
+  if (!bruteCheck.allowed) {
+    return res.status(429).json({ ok: false, message: bruteCheck.message });
+  }
+
   const { password } = req.body || {};
   const settings = loadSettings();
   const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
@@ -1228,14 +1306,75 @@ app.post('/api/admin/login', (req, res) => {
     return res.status(503).json({ ok: false, message: 'Chưa cấu hình ADMIN_PASSWORD trên server!' });
   }
 
-  if (password === currentPass) {
-    const token = `admin_tk_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
-    activeAdminTokens.add(token);
-    console.log('[ADMIN] ✅ Đăng nhập thành công.');
-    return res.json({ ok: true, token: token });
+  if (!password || password !== currentPass) {
+    recordFailedLogin(clientIp);
+    // Delay 800ms để chống timing attack & brute force tự động
+    await new Promise(r => setTimeout(r, 800));
+    return res.status(401).json({ ok: false, message: 'Mật khẩu quản trị viên không chính xác!' });
   }
 
-  return res.status(401).json({ ok: false, message: 'Mật khẩu quản trị viên không chính xác!' });
+  recordSuccessfulLogin(clientIp);
+  const token = 'adm_' + crypto.randomBytes(32).toString('hex');
+  activeAdminTokens.add(token);
+  await saveSessions(activeAdminTokens);
+
+  const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https';
+  const cookieFlags = `Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${isHttps ? '; Secure' : ''}`;
+  res.setHeader('Set-Cookie', `admin_session=${token}; ${cookieFlags}`);
+
+  console.log(`[ADMIN] ✅ Đăng nhập thành công từ IP: ${clientIp}`);
+  return res.json({ ok: true, token: token, message: 'Đăng nhập thành công!' });
+});
+
+// Đăng xuất Admin
+app.all(['/api/admin/logout', '/admin/logout'], async (req, res) => {
+  const token = extractAdminToken(req);
+  if (token) {
+    activeAdminTokens.delete(token);
+    await saveSessions(activeAdminTokens);
+  }
+
+  const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https';
+  res.setHeader('Set-Cookie', `admin_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT${isHttps ? '; Secure' : ''}`);
+
+  if (req.xhr || req.headers.accept?.includes('json')) {
+    return res.json({ ok: true, message: 'Đã đăng xuất thành công!' });
+  }
+  return res.redirect('/admin');
+});
+
+// Đổi mật khẩu Admin an toàn (Xác thực mật khẩu hiện tại)
+app.post('/api/admin/change-password', requireAdmin, async (req, res) => {
+  const { currentPassword, newPassword } = req.body || {};
+  const settings = loadSettings();
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
+  const currentPass = process.env.ADMIN_PASSWORD || settings.adminPassword || (isProduction ? '' : 'admin123');
+
+  if (!currentPassword || currentPassword !== currentPass) {
+    return res.status(401).json({ ok: false, message: 'Mật khẩu hiện tại không chính xác!' });
+  }
+
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ ok: false, message: 'Mật khẩu mới phải từ 6 ký tự trở lên!' });
+  }
+
+  settings.adminPassword = newPassword;
+  if (await saveSettings(settings)) {
+    // Thu hồi tất cả phiên cũ, tạo phiên mới cho phiên hiện tại
+    activeAdminTokens.clear();
+    const token = 'adm_' + crypto.randomBytes(32).toString('hex');
+    activeAdminTokens.add(token);
+    await saveSessions(activeAdminTokens);
+
+    const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https';
+    const cookieFlags = `Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${isHttps ? '; Secure' : ''}`;
+    res.setHeader('Set-Cookie', `admin_session=${token}; ${cookieFlags}`);
+
+    console.log('[ADMIN] 🔐 Đã cập nhật mật khẩu Admin mới thành công');
+    return res.json({ ok: true, token, message: 'Đổi mật khẩu thành công! Tất cả các phiên khác đã đăng xuất an toàn.' });
+  }
+
+  return res.status(500).json({ ok: false, message: 'Không thể lưu mật khẩu mới!' });
 });
 
 // Thống kê tổng quan Overview
@@ -1293,18 +1432,24 @@ app.get('/api/admin/overview', requireAdmin, async (req, res) => {
   });
 });
 
-// Lấy toàn bộ Settings
+// Lấy toàn bộ Settings (Bảo mật: không bao giờ gửi mật khẩu admin về client)
 app.get('/api/admin/settings', requireAdmin, (req, res) => {
   const settings = loadSettings();
-  res.json({ ok: true, data: settings });
+  const sanitized = { ...settings };
+  delete sanitized.adminPassword;
+  sanitized.hasAdminPassword = !!(settings.adminPassword || process.env.ADMIN_PASSWORD);
+  res.json({ ok: true, data: sanitized });
 });
 
-// Cập nhật Settings
+// Cập nhật Settings (Chặn sửa adminPassword qua route này)
 app.post('/api/admin/settings', requireAdmin, async (req, res) => {
   const newSettings = req.body;
   if (!newSettings || typeof newSettings !== 'object') {
     return res.status(400).json({ ok: false, message: 'Dữ liệu không hợp lệ!' });
   }
+
+  // Không cho phép đổi mật khẩu admin qua route settings thông thường
+  delete newSettings.adminPassword;
 
   const current = loadSettings();
   const merged = { ...current, ...newSettings };

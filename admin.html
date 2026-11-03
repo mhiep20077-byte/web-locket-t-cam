@@ -457,22 +457,6 @@
 
 <body>
 
-  <!-- Login Modal -->
-  <div id="login-overlay">
-    <div class="login-box">
-      <div style="font-size: 40px; margin-bottom: 12px;">👑</div>
-      <h2>Quản Trị Hệ Thống</h2>
-      <p style="color: var(--text-sub); font-size: 0.9rem;">Nhập mật khẩu Admin để truy cập trung tâm điều khiển</p>
-
-      <input type="password" id="admin-pass-input" class="login-input" placeholder="Mật khẩu Admin..." autofocus>
-      <button type="button" class="btn-login" onclick="executeAdminLogin()">
-        <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập
-      </button>
-      <p id="login-error"
-        style="color: var(--rose); font-size: 0.85rem; margin-top: 14px; display: none; font-weight: 700;"></p>
-    </div>
-  </div>
-
   <!-- Sidebar -->
   <aside class="admin-sidebar">
     <div class="sidebar-brand">
@@ -848,12 +832,20 @@
       <!-- Đổi mật khẩu admin -->
       <div class="panel-card">
         <div class="panel-title" style="color: var(--rose);">
-          <i class="fa-solid fa-lock"></i> Đổi Mật Khẩu Admin
+          <i class="fa-solid fa-lock"></i> Đổi Mật Khẩu Admin (Bảo Mật Hai Lớp)
         </div>
         <div class="form-row">
           <div class="form-group">
+            <label class="form-label">Mật Khẩu Hiện Tại:</label>
+            <input type="password" id="current-admin-pass" class="form-input" placeholder="Nhập mật khẩu hiện tại...">
+          </div>
+          <div class="form-group">
             <label class="form-label">Mật Khẩu Mới:</label>
-            <input type="password" id="new-admin-pass" class="form-input" placeholder="Nhập mật khẩu mới...">
+            <input type="password" id="new-admin-pass" class="form-input" placeholder="Tối thiểu 6 ký tự...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Xác Nhận Mật Khẩu Mới:</label>
+            <input type="password" id="confirm-admin-pass" class="form-input" placeholder="Nhập lại mật khẩu mới...">
           </div>
           <div class="form-group" style="display: flex; align-items: flex-end;">
             <button type="button" class="btn-save"

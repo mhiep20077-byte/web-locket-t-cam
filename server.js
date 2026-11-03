@@ -1604,7 +1604,7 @@ app.post('/api/admin/gallery/delete', requireAdmin, async (req, res) => {
 
 // 1. Đăng ký tài khoản CTV mới
 app.post('/api/ctv/register', async (req, res) => {
-  const { username, password, fullName, phone } = req.body || {};
+  const { username, password, email: rawEmail } = req.body || {};
   const settings = loadSettings();
   if (settings.ctvSettings && settings.ctvSettings.allowRegister === false) {
     return res.status(403).json({ ok: false, message: 'Hệ thống hiện đang tạm đóng đăng ký CTV mới!' });
@@ -1617,17 +1617,25 @@ app.post('/api/ctv/register', async (req, res) => {
   if (!password || password.length < 3) {
     return res.status(400).json({ ok: false, message: 'Mật khẩu phải từ 3 ký tự trở lên!' });
   }
+  const email = String(rawEmail || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ ok: false, message: 'Vui lòng nhập email hợp lệ!' });
+  }
 
   const users = loadCtvUsers();
   if (users.find(u => u.username.toLowerCase() === cleanUser.toLowerCase())) {
     return res.status(400).json({ ok: false, message: 'Tên đăng nhập này đã có người sử dụng!' });
   }
+  if (users.find(u => (u.email || '').toLowerCase() === email)) {
+    return res.status(400).json({ ok: false, message: 'Email này đã được dùng cho một tài khoản CTV khác!' });
+  }
 
   const newCtv = {
     username: cleanUser,
+    email: email,
     password: password,
-    fullName: (fullName || cleanUser).trim(),
-    phone: (phone || '').trim(),
+    fullName: cleanUser,
+    phone: '',
     balance: 0,
     coins: 0,
     status: 'ACTIVE',
@@ -1648,6 +1656,7 @@ app.post('/api/ctv/register', async (req, res) => {
     token: token,
     user: {
       username: newCtv.username,
+      email: newCtv.email,
       fullName: newCtv.fullName,
       balance: newCtv.balance,
       coins: newCtv.coins

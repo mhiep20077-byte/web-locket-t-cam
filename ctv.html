@@ -299,6 +299,7 @@
     /* Form Fields */
     .form-group-ctv {
       margin-bottom: 18px;
+      width: 100%;
     }
 
     .form-group-ctv label {
@@ -316,6 +317,8 @@
 
     .ctv-input {
       flex: 1;
+      width: 100%;
+      min-width: 0;
       height: 48px;
       background: rgba(0, 0, 0, 0.4);
       border: 1.5px solid var(--border-subtle);
@@ -708,16 +711,16 @@
           <input type="text" id="reg-username" class="ctv-input" placeholder="Ví dụ: ctv_kienviet" required>
         </div>
         <div class="form-group-ctv">
-          <label>Họ &amp; Tên:</label>
-          <input type="text" id="reg-fullname" class="ctv-input" placeholder="Ví dụ: Nguyễn Văn A" required>
-        </div>
-        <div class="form-group-ctv">
-          <label>Số Điện Thoại / Zalo:</label>
-          <input type="text" id="reg-phone" class="ctv-input" placeholder="Ví dụ: 0987654321" required>
+          <label>Email:</label>
+          <input type="email" id="reg-email" class="ctv-input" placeholder="name@example.com" required autocomplete="email">
         </div>
         <div class="form-group-ctv">
           <label>Mật Khẩu:</label>
-          <input type="password" id="reg-password" class="ctv-input" placeholder="Nhập mật khẩu..." required>
+          <input type="password" id="reg-password" class="ctv-input" placeholder="Nhập mật khẩu..." required autocomplete="new-password">
+        </div>
+        <div class="form-group-ctv">
+          <label>Xác Nhận Mật Khẩu:</label>
+          <input type="password" id="reg-confirm-password" class="ctv-input" placeholder="Nhập lại mật khẩu..." required autocomplete="new-password">
         </div>
         <button type="submit" class="btn-activate-main" style="width: 100%; justify-content: center; margin-top: 10px;">
           <i class="fa-solid fa-user-plus"></i> Đăng Ký Tài Khoản CTV

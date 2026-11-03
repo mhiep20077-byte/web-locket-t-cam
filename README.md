@@ -57,3 +57,17 @@ npm start
 * **Trang web khách hàng:** [http://localhost:3000](http://localhost:3000)
 * **Trang quản trị Admin:** [http://localhost:3000/admin](http://localhost:3000/admin) *(Mật khẩu mặc định: `admin123`)*
 
+## Deploy Render với PostgreSQL
+
+1. Tạo PostgreSQL database trên Render và lấy **External Database URL**.
+2. Nếu cần giữ dữ liệu local, đặt tạm URL này vào `.env` với tên `DATABASE_URL`, bảo đảm database chưa có collection `app_data`, rồi chạy `npm start` tại máy local. Lần khởi động đầu sẽ nhập các file JSON local vào database. Chờ log `[DATABASE] PostgreSQL đã kết nối` rồi dừng server local.
+3. Tạo Web Service trên Render từ repository này, dùng Build Command `npm ci` và Start Command `npm start`.
+4. Thêm biến `DATABASE_URL` cho Web Service bằng **Internal Database URL** của PostgreSQL. Render cần biến môi trường `PORT` do nền tảng cấp; server đã tự đọc biến này.
+5. Deploy Web Service. Server tạo bảng `app_data` khi khởi động; dữ liệu cũ không bị ghi đè nếu collection đã có trong database.
+
+Nếu không cần dữ liệu local, có thể bỏ bước nhập dữ liệu; database sẽ tạo cấu hình từ `data/settings.example.json` và các collection còn lại bắt đầu rỗng. Cấu hình key API trong admin sau khi deploy. Không đưa `.env` hoặc `data/*.json` lên GitHub.
+
+Lưu ý: đơn hàng, settings, tài khoản và dữ liệu CTV được lưu trong PostgreSQL. Ảnh tải lên từ trang admin hiện vẫn ghi vào thư mục `images`; muốn giữ ảnh upload qua các lần deploy cần thêm persistent disk hoặc object storage.
+
+Storage adapter hiện cache các collection trong bộ nhớ của process; giữ Web Service một instance trên Render. Không bật nhiều replica trước khi chuyển các collection sang truy vấn theo từng dòng.
+

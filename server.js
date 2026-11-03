@@ -29,6 +29,10 @@ const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
 const CTV_USERS_FILE = path.join(DATA_DIR, 'ctv_users.json');
 const CTV_CUSTOMERS_FILE = path.join(DATA_DIR, 'ctv_customers.json');
 const CTV_DEPOSITS_FILE = path.join(DATA_DIR, 'ctv_deposits.json');
+const SETTINGS_EXAMPLE_FILE = path.join(DATA_DIR, 'settings.example.json');
+const DATABASE_URL = process.env.DATABASE_URL || '';
+const databaseCache = new Map();
+let databasePool = null;
 
 // Ensure data folder exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -36,19 +40,82 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 
 // Session persistence for Admin & CTV
-function loadSessions() {
+function cloneJson(value) {
+  return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+}
+
+function readJsonFile(filePath) {
   try {
-    if (fs.existsSync(SESSIONS_FILE)) {
-      return new Set(JSON.parse(fs.readFileSync(SESSIONS_FILE, 'utf8')));
+    if (fs.existsSync(filePath)) {
+      return JSON.parse(fs.readFileSync(filePath, 'utf8'));
     }
-  } catch (e) { }
-  return new Set();
+  } catch (err) {
+    console.error(`[STORAGE] Lỗi đọc ${path.basename(filePath)}:`, err.message);
+  }
+  return undefined;
+}
+
+function loadCollection(name, filePath, fallbackValue, exampleFile = null) {
+  if (DATABASE_URL) {
+    return cloneJson(databaseCache.has(name) ? databaseCache.get(name) : fallbackValue);
+  }
+
+  const localValue = readJsonFile(filePath);
+  if (localValue !== undefined) return localValue;
+
+  if (exampleFile) {
+    const exampleValue = readJsonFile(exampleFile);
+    if (exampleValue !== undefined) {
+      try {
+        fs.copyFileSync(exampleFile, filePath);
+      } catch (err) {
+        console.error('[SETTINGS] Lỗi tạo settings.json:', err.message);
+      }
+      return exampleValue;
+    }
+  }
+
+  return cloneJson(fallbackValue);
+}
+
+function saveCollection(name, filePath, value, logLabel) {
+  const safeValue = cloneJson(value);
+  if (DATABASE_URL) {
+    if (!databasePool) {
+      console.error(`[${logLabel}] Database chưa khởi tạo; không thể lưu dữ liệu.`);
+      return Promise.resolve(false);
+    }
+
+    return databasePool.query(
+      `INSERT INTO app_data (collection_name, payload, updated_at)
+       VALUES ($1, $2::jsonb, NOW())
+       ON CONFLICT (collection_name) DO UPDATE
+       SET payload = EXCLUDED.payload, updated_at = NOW()`,
+      [name, JSON.stringify(safeValue)]
+    ).then(() => {
+      databaseCache.set(name, safeValue);
+      return true;
+    }).catch(err => {
+      console.error(`[${logLabel}] Lỗi ghi PostgreSQL:`, err.message);
+      return false;
+    });
+  }
+
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(safeValue, null, 2), 'utf8');
+    return true;
+  } catch (err) {
+    console.error(`[${logLabel}] Lỗi ghi ${path.basename(filePath)}:`, err.message);
+    return false;
+  }
+}
+
+function loadSessions() {
+  return new Set(loadCollection('sessions', SESSIONS_FILE, []));
 }
 
 function saveSessions(tokenSet) {
-  try {
-    fs.writeFileSync(SESSIONS_FILE, JSON.stringify([...tokenSet]), 'utf8');
-  } catch (e) { }
+  return saveCollection('sessions', SESSIONS_FILE, [...tokenSet], 'SESSIONS');
 }
 
 const activeAdminTokens = loadSessions();
@@ -58,127 +125,103 @@ const activeCtvTokens = new Map(); // token -> ctvUsername
 // DATA STORAGE HELPERS
 // ============================================================
 function loadSettings() {
-  try {
-    if (!fs.existsSync(SETTINGS_FILE)) {
-      const exampleFile = path.join(DATA_DIR, 'settings.example.json');
-      if (fs.existsSync(exampleFile)) {
-        fs.copyFileSync(exampleFile, SETTINGS_FILE);
-      }
-    }
-    if (fs.existsSync(SETTINGS_FILE)) {
-      return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
-    }
-  } catch (err) {
-    console.error('[SETTINGS] Lỗi đọc settings.json:', err.message);
-  }
-  return {};
+  return loadCollection('settings', SETTINGS_FILE, {}, SETTINGS_EXAMPLE_FILE);
 }
 
 function saveSettings(settings) {
-  try {
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf8');
-    return true;
-  } catch (err) {
-    console.error('[SETTINGS] Lỗi ghi settings.json:', err.message);
-    return false;
-  }
+  return saveCollection('settings', SETTINGS_FILE, settings, 'SETTINGS');
 }
 
 function loadOrders() {
-  try {
-    if (fs.existsSync(ORDERS_FILE)) {
-      return JSON.parse(fs.readFileSync(ORDERS_FILE, 'utf8'));
-    }
-  } catch (err) {
-    console.error('[ORDERS] Lỗi đọc orders.json:', err.message);
-  }
-  return [];
+  return loadCollection('orders', ORDERS_FILE, []);
 }
 
 function saveOrders(orders) {
-  try {
-    fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), 'utf8');
-    return true;
-  } catch (err) {
-    console.error('[ORDERS] Lỗi ghi orders.json:', err.message);
-    return false;
-  }
+  return saveCollection('orders', ORDERS_FILE, orders, 'ORDERS');
 }
 
 function loadCtvUsers() {
-  try {
-    if (fs.existsSync(CTV_USERS_FILE)) {
-      return JSON.parse(fs.readFileSync(CTV_USERS_FILE, 'utf8'));
-    }
-  } catch (err) {
-    console.error('[CTV] Lỗi đọc ctv_users.json:', err.message);
-  }
-  return [];
+  return loadCollection('ctv_users', CTV_USERS_FILE, []);
 }
 
 function saveCtvUsers(users) {
-  try {
-    fs.writeFileSync(CTV_USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
-    return true;
-  } catch (err) {
-    console.error('[CTV] Lỗi ghi ctv_users.json:', err.message);
-    return false;
-  }
+  return saveCollection('ctv_users', CTV_USERS_FILE, users, 'CTV');
 }
 
 function loadCtvCustomers() {
-  try {
-    if (fs.existsSync(CTV_CUSTOMERS_FILE)) {
-      return JSON.parse(fs.readFileSync(CTV_CUSTOMERS_FILE, 'utf8'));
-    }
-  } catch (err) { }
-  return [];
+  return loadCollection('ctv_customers', CTV_CUSTOMERS_FILE, []);
 }
 
 function saveCtvCustomers(custs) {
-  try {
-    fs.writeFileSync(CTV_CUSTOMERS_FILE, JSON.stringify(custs, null, 2), 'utf8');
-    return true;
-  } catch (err) { }
-  return false;
+  return saveCollection('ctv_customers', CTV_CUSTOMERS_FILE, custs, 'CTV CUSTOMERS');
 }
 
 function loadCtvDeposits() {
-  try {
-    if (fs.existsSync(CTV_DEPOSITS_FILE)) {
-      return JSON.parse(fs.readFileSync(CTV_DEPOSITS_FILE, 'utf8'));
-    }
-  } catch (err) { }
-  return [];
+  return loadCollection('ctv_deposits', CTV_DEPOSITS_FILE, []);
 }
 
 function saveCtvDeposits(deps) {
-  try {
-    fs.writeFileSync(CTV_DEPOSITS_FILE, JSON.stringify(deps, null, 2), 'utf8');
-    return true;
-  } catch (err) { }
-  return false;
+  return saveCollection('ctv_deposits', CTV_DEPOSITS_FILE, deps, 'CTV DEPOSITS');
 }
 
 function loadUsers() {
-  try {
-    if (fs.existsSync(USERS_FILE)) {
-      return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
-    }
-  } catch (err) {
-    console.error('[USERS] Lỗi đọc users.json:', err.message);
-  }
-  return {};
+  return loadCollection('users', USERS_FILE, {});
 }
 
 function saveUsers(users) {
-  try {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
-    return true;
-  } catch (err) {
-    console.error('[USERS] Lỗi ghi users.json:', err.message);
-    return false;
+  return saveCollection('users', USERS_FILE, users, 'USERS');
+}
+
+async function initializeDatabase() {
+  if (!DATABASE_URL) return;
+
+  const { Pool } = require('pg');
+  const connectionHost = new URL(DATABASE_URL).hostname;
+  const isLocalDatabase = ['localhost', '127.0.0.1'].includes(connectionHost);
+  databasePool = new Pool({
+    connectionString: DATABASE_URL,
+    ssl: process.env.DATABASE_SSL === 'false' || isLocalDatabase
+      ? false
+      : { rejectUnauthorized: false }
+  });
+
+  await databasePool.query(`
+    CREATE TABLE IF NOT EXISTS app_data (
+      collection_name TEXT PRIMARY KEY,
+      payload JSONB NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  const { rows } = await databasePool.query('SELECT collection_name, payload FROM app_data');
+  for (const row of rows) databaseCache.set(row.collection_name, row.payload);
+
+  const collections = [
+    { name: 'settings', file: SETTINGS_FILE, fallback: {}, example: SETTINGS_EXAMPLE_FILE },
+    { name: 'orders', file: ORDERS_FILE, fallback: [] },
+    { name: 'users', file: USERS_FILE, fallback: {} },
+    { name: 'sessions', file: SESSIONS_FILE, fallback: [] },
+    { name: 'ctv_users', file: CTV_USERS_FILE, fallback: [] },
+    { name: 'ctv_customers', file: CTV_CUSTOMERS_FILE, fallback: [] },
+    { name: 'ctv_deposits', file: CTV_DEPOSITS_FILE, fallback: [] }
+  ];
+
+  for (const collection of collections) {
+    if (databaseCache.has(collection.name)) continue;
+
+    let value = readJsonFile(collection.file);
+    if (value === undefined && collection.example) value = readJsonFile(collection.example);
+    if (value === undefined) value = collection.fallback;
+
+    await databasePool.query(
+      'INSERT INTO app_data (collection_name, payload) VALUES ($1, $2::jsonb) ON CONFLICT (collection_name) DO NOTHING',
+      [collection.name, JSON.stringify(value)]
+    );
+    databaseCache.set(collection.name, cloneJson(value));
   }
+
+  for (const token of loadSessions()) activeAdminTokens.add(token);
+  console.log('[DATABASE] PostgreSQL đã kết nối; dữ liệu JSON local được nạp nếu collection còn trống.');
 }
 
 // Clean username helper
@@ -286,7 +329,7 @@ app.get(['/ctv', '/ctv.html'], (req, res) => {
 });
 
 // Admin Auth Middleware
-function requireAdmin(req, res, next) {
+async function requireAdmin(req, res, next) {
   const authHeader = req.headers['authorization'] || '';
   const token = authHeader.replace(/^Bearer\s+/i, '').trim() || req.headers['x-admin-token'];
   if (!token) {
@@ -296,7 +339,9 @@ function requireAdmin(req, res, next) {
     const saved = loadSessions();
     if (saved.has(token) || token.startsWith('admin_token_')) {
       activeAdminTokens.add(token);
-      saveSessions(activeAdminTokens);
+      if (!(await saveSessions(activeAdminTokens))) {
+        return res.status(500).json({ ok: false, error: 'Không thể lưu phiên admin!' });
+      }
     } else {
       return res.status(401).json({ ok: false, error: 'Chưa đăng nhập hoặc phiên làm việc đã hết hạn!' });
     }
@@ -564,7 +609,9 @@ app.post('/api/order/create', async (req, res) => {
 
   const orders = loadOrders();
   orders.unshift(newOrder);
-  saveOrders(orders.slice(0, 500)); // Giữ 500 đơn gần nhất
+  if (!(await saveOrders(orders.slice(0, 500)))) {
+    return res.status(500).json({ ok: false, message: 'Không thể lưu đơn hàng!' });
+  }
 
   console.log(`[ORDER] Tạo đơn mới: ${orderCode} - @${username} - ${matchedPlan.name} (${amount.toLocaleString('vi-VN')}đ)`);
 
@@ -763,7 +810,7 @@ async function processIncomingTransaction(tx) {
       await executeActivation(matchedOrder);
     }
 
-    saveOrders(orders);
+    if (!(await saveOrders(orders))) throw new Error('Không thể lưu trạng thái đơn hàng sau thanh toán.');
     return true;
   }
 
@@ -781,7 +828,7 @@ async function processIncomingTransaction(tx) {
     matchedDeposit.status = 'COMPLETED';
     matchedDeposit.paymentRef = id || `PAY_${Date.now()}`;
     matchedDeposit.completedAt = new Date().toISOString();
-    saveCtvDeposits(deposits);
+    if (!(await saveCtvDeposits(deposits))) throw new Error('Không thể lưu lệnh nạp CTV sau thanh toán.');
 
     // Tự động cộng số dư tiền và Coin cho CTV
     const users = loadCtvUsers();
@@ -789,7 +836,7 @@ async function processIncomingTransaction(tx) {
     if (user) {
       user.balance = (user.balance || 0) + matchedDeposit.amount;
       user.coins = Math.floor(user.balance / 1000);
-      saveCtvUsers(users);
+      if (!(await saveCtvUsers(users))) throw new Error('Không thể cập nhật số dư CTV sau thanh toán.');
       console.log(`[WEBHOOK] 💰 Đã tự động cộng +${matchedDeposit.amount.toLocaleString('vi-VN')}đ (+${matchedDeposit.coins} Coins) cho CTV @${user.username}!`);
     }
     return true;
@@ -878,7 +925,7 @@ async function processIncomingTransaction(tx) {
     }
 
     orders.unshift(newOrder);
-    saveOrders(orders.slice(0, 500));
+    if (!(await saveOrders(orders.slice(0, 500)))) throw new Error('Không thể lưu đơn hàng chuyển khoản trực tiếp.');
     console.log(`[WEBHOOK] 🚀 Đã tạo đơn và kích hoạt tự động thành công cho @${cleanUser} (${newOrder.orderCode})!`);
     return true;
   }
@@ -889,50 +936,60 @@ async function processIncomingTransaction(tx) {
 
 // Webhook Casso
 app.all('/webhook/casso', async (req, res) => {
-  const body = req.body || {};
-  const data = body.data || (Array.isArray(body) ? body : [body]);
+  try {
+    const body = req.body || {};
+    const data = body.data || (Array.isArray(body) ? body : [body]);
 
-  for (const item of (Array.isArray(data) ? data : [data])) {
-    if (item && item.amount) {
-      await processIncomingTransaction({
-        id: item.id || item.tid,
-        amount: item.amount,
-        description: item.description || item.corresponsiveName || ''
-      });
+    for (const item of (Array.isArray(data) ? data : [data])) {
+      if (item && item.amount) {
+        await processIncomingTransaction({
+          id: item.id || item.tid,
+          amount: item.amount,
+          description: item.description || item.corresponsiveName || ''
+        });
+      }
     }
-  }
 
-  res.json({ error: 0, message: 'OK' });
+    return res.json({ error: 0, message: 'OK' });
+  } catch (err) {
+    console.error('[CASSO] Không thể lưu giao dịch:', err.message);
+    return res.status(500).json({ error: 1, message: 'Không thể lưu giao dịch, vui lòng gửi lại.' });
+  }
 });
 
 // Webhook SePay (Tương thích 100% với SePay từ locket thường)
 app.all('/webhook/sepay', async (req, res) => {
-  const body = req.body || {};
-  console.log('[SEPAY] Webhook nhận dữ liệu:', JSON.stringify(body));
+  try {
+    const body = req.body || {};
+    console.log('[SEPAY] Webhook nhận dữ liệu:', JSON.stringify(body));
 
-  const settings = loadSettings();
-  const apiKey = settings.apiConfig?.sepayApiKey;
-  if (apiKey) {
-    const authHeader = req.headers['authorization'] || '';
-    if (authHeader !== `Apikey ${apiKey}` && authHeader !== apiKey) {
-      console.warn('[SEPAY] API Key không hợp lệ!');
-      return res.status(401).json({ error: 'Unauthorized' });
+    const settings = loadSettings();
+    const apiKey = settings.apiConfig?.sepayApiKey;
+    if (apiKey) {
+      const authHeader = req.headers['authorization'] || '';
+      if (authHeader !== `Apikey ${apiKey}` && authHeader !== apiKey) {
+        console.warn('[SEPAY] API Key không hợp lệ!');
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
     }
+
+    const amount = body.transferAmount || body.amount || 0;
+    const description = body.content || body.description || '';
+    const id = body.id || body.referenceCode || Date.now();
+
+    if (amount) {
+      await processIncomingTransaction({
+        id: id,
+        amount: Number(amount),
+        description: String(description)
+      });
+    }
+
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('[SEPAY] Không thể lưu giao dịch:', err.message);
+    return res.status(500).json({ success: false, message: 'Không thể lưu giao dịch, vui lòng gửi lại.' });
   }
-
-  const amount = body.transferAmount || body.amount || 0;
-  const description = body.content || body.description || '';
-  const id = body.id || body.referenceCode || Date.now();
-
-  if (amount) {
-    await processIncomingTransaction({
-      id: id,
-      amount: Number(amount),
-      description: String(description)
-    });
-  }
-
-  res.status(200).json({ success: true });
 });
 
 // ============================================================
@@ -1195,7 +1252,7 @@ app.get('/api/admin/settings', requireAdmin, (req, res) => {
 });
 
 // Cập nhật Settings
-app.post('/api/admin/settings', requireAdmin, (req, res) => {
+app.post('/api/admin/settings', requireAdmin, async (req, res) => {
   const newSettings = req.body;
   if (!newSettings || typeof newSettings !== 'object') {
     return res.status(400).json({ ok: false, message: 'Dữ liệu không hợp lệ!' });
@@ -1204,7 +1261,7 @@ app.post('/api/admin/settings', requireAdmin, (req, res) => {
   const current = loadSettings();
   const merged = { ...current, ...newSettings };
 
-  if (saveSettings(merged)) {
+  if (await saveSettings(merged)) {
     console.log('[ADMIN] ✅ Cập nhật settings thành công');
     return res.json({ ok: true, message: 'Đã lưu cấu hình thành công!' });
   }
@@ -1213,7 +1270,7 @@ app.post('/api/admin/settings', requireAdmin, (req, res) => {
 });
 
 // Cập nhật cài đặt chức năng trang khách hàng
-app.post('/api/admin/customer-features', requireAdmin, (req, res) => {
+app.post('/api/admin/customer-features', requireAdmin, async (req, res) => {
   const newFeatures = req.body;
   if (!newFeatures || typeof newFeatures !== 'object') {
     return res.status(400).json({ ok: false, message: 'Dữ liệu không hợp lệ!' });
@@ -1230,7 +1287,7 @@ app.post('/api/admin/customer-features', requireAdmin, (req, res) => {
     settings.marqueeNotice = newFeatures.marqueeNotice;
   }
 
-  if (saveSettings(settings)) {
+  if (await saveSettings(settings)) {
     console.log('[ADMIN] ✅ Đã lưu cấu hình chức năng trang khách hàng');
     return res.json({
       ok: true,
@@ -1248,7 +1305,7 @@ app.get('/api/admin/orders', requireAdmin, (req, res) => {
   res.json({ ok: true, orders: orders });
 });
 
-app.post('/api/admin/order/mark-paid', requireAdmin, (req, res) => {
+app.post('/api/admin/order/mark-paid', requireAdmin, async (req, res) => {
   const { orderId } = req.body || {};
   const orders = loadOrders();
   const order = orders.find(o => o.id === orderId || o.orderCode === orderId);
@@ -1263,7 +1320,7 @@ app.post('/api/admin/order/mark-paid', requireAdmin, (req, res) => {
   order.status = 'PAID';
   order.paymentRef = `ADMIN_${Date.now()}`;
   order.paidAt = new Date().toISOString();
-  if (!saveOrders(orders)) {
+  if (!(await saveOrders(orders))) {
     return res.status(500).json({ ok: false, message: 'Không thể lưu trạng thái đơn hàng!' });
   }
 
@@ -1284,7 +1341,9 @@ app.post('/api/admin/order/manual-activate', requireAdmin, async (req, res) => {
   }
 
   const result = await executeActivation(order);
-  saveOrders(orders);
+  if (!(await saveOrders(orders))) {
+    return res.status(500).json({ ok: false, message: 'Kích hoạt đã được gửi nhưng không lưu được trạng thái đơn hàng!', order });
+  }
 
   if (result.success) {
     return res.json({ ok: true, message: 'Kích hoạt đơn hàng thành công!', order: order });
@@ -1294,7 +1353,7 @@ app.post('/api/admin/order/manual-activate', requireAdmin, async (req, res) => {
 });
 
 // Cập nhật trạng thái đơn (Đã duyệt / Hủy)
-app.post('/api/admin/order/update-status', requireAdmin, (req, res) => {
+app.post('/api/admin/order/update-status', requireAdmin, async (req, res) => {
   const { orderId, status } = req.body || {};
   const orders = loadOrders();
   const order = orders.find(o => o.id === orderId || o.orderCode === orderId);
@@ -1304,13 +1363,15 @@ app.post('/api/admin/order/update-status', requireAdmin, (req, res) => {
   }
 
   order.status = status;
-  saveOrders(orders);
+  if (!(await saveOrders(orders))) {
+    return res.status(500).json({ ok: false, message: 'Không thể lưu trạng thái đơn hàng!' });
+  }
 
   res.json({ ok: true, message: 'Đã cập nhật trạng thái đơn hàng!', order: order });
 });
 
 // Xoá đơn hàng
-app.post('/api/admin/order/delete', requireAdmin, (req, res) => {
+app.post('/api/admin/order/delete', requireAdmin, async (req, res) => {
   const { orderId } = req.body || {};
   let orders = loadOrders();
   const beforeLen = orders.length;
@@ -1320,7 +1381,9 @@ app.post('/api/admin/order/delete', requireAdmin, (req, res) => {
     return res.status(404).json({ ok: false, message: 'Không tìm thấy đơn để xoá!' });
   }
 
-  saveOrders(orders);
+  if (!(await saveOrders(orders))) {
+    return res.status(500).json({ ok: false, message: 'Không thể xóa đơn hàng!' });
+  }
   res.json({ ok: true, message: 'Đã xoá đơn hàng thành công!' });
 });
 
@@ -1431,7 +1494,7 @@ app.post('/api/admin/upload-image', requireAdmin, (req, res) => {
 });
 
 // 2. Thêm ảnh vào VIP Gallery
-app.post('/api/admin/gallery/add', requireAdmin, (req, res) => {
+app.post('/api/admin/gallery/add', requireAdmin, async (req, res) => {
   try {
     const { title, tag, imageUrl, caption } = req.body || {};
     if (!imageUrl || !title) {
@@ -1453,7 +1516,9 @@ app.post('/api/admin/gallery/add', requireAdmin, (req, res) => {
     };
 
     settings.vipGallery.push(newItem);
-    saveSettings(settings);
+    if (!(await saveSettings(settings))) {
+      return res.status(500).json({ ok: false, message: 'Không thể lưu ảnh vào showroom!' });
+    }
 
     return res.json({ ok: true, message: 'Đã thêm ảnh vào showroom VIP thành công!', item: newItem, gallery: settings.vipGallery });
   } catch (err) {
@@ -1462,7 +1527,7 @@ app.post('/api/admin/gallery/add', requireAdmin, (req, res) => {
 });
 
 // 3. Xóa ảnh khỏi VIP Gallery
-app.post('/api/admin/gallery/delete', requireAdmin, (req, res) => {
+app.post('/api/admin/gallery/delete', requireAdmin, async (req, res) => {
   try {
     const { id } = req.body || {};
     if (!id) {
@@ -1475,7 +1540,9 @@ app.post('/api/admin/gallery/delete', requireAdmin, (req, res) => {
     }
 
     settings.vipGallery = settings.vipGallery.filter(item => item.id !== id);
-    saveSettings(settings);
+    if (!(await saveSettings(settings))) {
+      return res.status(500).json({ ok: false, message: 'Không thể lưu thay đổi showroom!' });
+    }
 
     return res.json({ ok: true, message: 'Đã xóa ảnh khỏi showroom VIP!', gallery: settings.vipGallery });
   } catch (err) {
@@ -1488,7 +1555,7 @@ app.post('/api/admin/gallery/delete', requireAdmin, (req, res) => {
 // ============================================================
 
 // 1. Đăng ký tài khoản CTV mới
-app.post('/api/ctv/register', (req, res) => {
+app.post('/api/ctv/register', async (req, res) => {
   const { username, password, fullName, phone } = req.body || {};
   const settings = loadSettings();
   if (settings.ctvSettings && settings.ctvSettings.allowRegister === false) {
@@ -1520,7 +1587,9 @@ app.post('/api/ctv/register', (req, res) => {
   };
 
   users.push(newCtv);
-  saveCtvUsers(users);
+  if (!(await saveCtvUsers(users))) {
+    return res.status(500).json({ ok: false, message: 'Không thể lưu tài khoản CTV!' });
+  }
 
   const token = 'ctv_tok_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
   activeCtvTokens.set(token, cleanUser);
@@ -1601,7 +1670,7 @@ app.get('/api/ctv/me', requireCtv, (req, res) => {
 });
 
 // 4. Tạo yêu cầu nạp tiền VietQR cho CTV
-app.post('/api/ctv/deposit/create', requireCtv, (req, res) => {
+app.post('/api/ctv/deposit/create', requireCtv, async (req, res) => {
   const { amount } = req.body || {};
   const numAmount = parseInt(amount, 10);
   if (!numAmount || numAmount < 50000) {
@@ -1639,7 +1708,9 @@ app.post('/api/ctv/deposit/create', requireCtv, (req, res) => {
 
   const deposits = loadCtvDeposits();
   deposits.unshift(depositOrder);
-  saveCtvDeposits(deposits);
+  if (!(await saveCtvDeposits(deposits))) {
+    return res.status(500).json({ ok: false, message: 'Không thể lưu yêu cầu nạp tiền!' });
+  }
 
   return res.json({
     ok: true,
@@ -1765,7 +1836,9 @@ app.post('/api/ctv/activate', requireCtv, async (req, res) => {
   if (currentCtv) {
     currentCtv.coins = (currentCtv.coins || userCoins) - requiredCoin;
     currentCtv.balance = (currentCtv.balance || (userCoins * 1000)) - (requiredCoin * 1000);
-    saveCtvUsers(users);
+    if (!(await saveCtvUsers(users))) {
+      return res.status(500).json({ ok: false, message: 'Không thể cập nhật số dư CTV; chưa thực hiện kích hoạt.' });
+    }
   }
 
   let resolvedUid = uid || null;
@@ -1885,7 +1958,9 @@ app.post('/api/ctv/activate', requireCtv, async (req, res) => {
 
   const customers = loadCtvCustomers();
   customers.unshift(newCust);
-  saveCtvCustomers(customers);
+  if (!(await saveCtvCustomers(customers))) {
+    return res.status(500).json({ ok: false, message: 'Kích hoạt đã được gửi nhưng không lưu được hồ sơ khách hàng!' });
+  }
 
   return res.json({
     ok: true,
@@ -1905,11 +1980,13 @@ app.get('/api/ctv/customers', requireCtv, (req, res) => {
 });
 
 // 8. CTV Xóa khách khỏi danh sách
-app.post('/api/ctv/customer/delete', requireCtv, (req, res) => {
+app.post('/api/ctv/customer/delete', requireCtv, async (req, res) => {
   const { id } = req.body || {};
   let customers = loadCtvCustomers();
   customers = customers.filter(c => !(c.id === id && c.ctvUsername.toLowerCase() === req.ctvUser.username.toLowerCase()));
-  saveCtvCustomers(customers);
+  if (!(await saveCtvCustomers(customers))) {
+    return res.status(500).json({ ok: false, message: 'Không thể xóa khách hàng!' });
+  }
   return res.json({ ok: true, message: 'Đã xóa khách hàng khỏi danh sách!' });
 });
 
@@ -1938,7 +2015,7 @@ app.get('/api/admin/ctv/list', requireAdmin, (req, res) => {
 });
 
 // 2. Admin nạp/sửa/cộng/trừ Coin & tiền cho CTV
-app.post('/api/admin/ctv/adjust-balance', requireAdmin, (req, res) => {
+app.post('/api/admin/ctv/adjust-balance', requireAdmin, async (req, res) => {
   const { username, amount, coins, type } = req.body || {};
   if (!username) {
     return res.status(400).json({ ok: false, message: 'Vui lòng cung cấp username CTV!' });
@@ -1994,7 +2071,9 @@ app.post('/api/admin/ctv/adjust-balance', requireAdmin, (req, res) => {
 
   user.coins = finalCoins;
   user.balance = finalCoins * 1000;
-  saveCtvUsers(users);
+  if (!(await saveCtvUsers(users))) {
+    return res.status(500).json({ ok: false, message: 'Không thể lưu số dư CTV!' });
+  }
 
   return res.json({
     ok: true,
@@ -2008,7 +2087,7 @@ app.post('/api/admin/ctv/adjust-balance', requireAdmin, (req, res) => {
 });
 
 // 3. Admin khóa / mở khóa CTV
-app.post('/api/admin/ctv/toggle-status', requireAdmin, (req, res) => {
+app.post('/api/admin/ctv/toggle-status', requireAdmin, async (req, res) => {
   const { username } = req.body || {};
   const users = loadCtvUsers();
   const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
@@ -2017,7 +2096,9 @@ app.post('/api/admin/ctv/toggle-status', requireAdmin, (req, res) => {
   }
 
   user.status = user.status === 'BLOCKED' ? 'ACTIVE' : 'BLOCKED';
-  saveCtvUsers(users);
+  if (!(await saveCtvUsers(users))) {
+    return res.status(500).json({ ok: false, message: 'Không thể cập nhật trạng thái CTV!' });
+  }
   return res.json({
     ok: true,
     message: `Đã ${user.status === 'BLOCKED' ? 'khóa' : 'mở khóa'} CTV @${username}!`,
@@ -2026,7 +2107,7 @@ app.post('/api/admin/ctv/toggle-status', requireAdmin, (req, res) => {
 });
 
 // 4. Admin lưu cài đặt & bật/tắt chức năng CTV & Bảng giá sỉ
-app.post('/api/admin/ctv/settings', requireAdmin, (req, res) => {
+app.post('/api/admin/ctv/settings', requireAdmin, async (req, res) => {
   const { allowRegister, tabLocket, tabVipFilter, tabSpotify, wholesalePlans, depositPrefix } = req.body || {};
   const settings = loadSettings();
   if (!settings.ctvSettings) settings.ctvSettings = {};
@@ -2038,19 +2119,31 @@ app.post('/api/admin/ctv/settings', requireAdmin, (req, res) => {
   if (depositPrefix && typeof depositPrefix === 'string') settings.ctvSettings.depositPrefix = depositPrefix.trim().toUpperCase();
   if (Array.isArray(wholesalePlans)) settings.ctvSettings.wholesalePlans = wholesalePlans;
 
-  saveSettings(settings);
+  if (!(await saveSettings(settings))) {
+    return res.status(500).json({ ok: false, message: 'Không thể lưu cấu hình CTV!' });
+  }
   return res.json({ ok: true, message: 'Đã lưu cấu hình CTV thành công!', ctvSettings: settings.ctvSettings });
 });
 
-// Khởi chạy server
-app.listen(PORT, () => {
-  console.log(`
+// Khởi chạy server sau khi storage sẵn sàng
+async function startServer() {
+  try {
+    await initializeDatabase();
+    app.listen(PORT, () => {
+      console.log(`
 ============================================================
 👑 TỔ CAM — LOCKET VIP & LOCKET GOLD SYSTEM V2
 🌐 Server đang chạy tại: http://localhost:${PORT}
 🔐 Trang Quản Trị Admin: http://localhost:${PORT}/admin
 ⚡ Mật khẩu Admin mặc định: admin123
 ============================================================
-  `);
-});
+      `);
+    });
+  } catch (err) {
+    console.error('[DATABASE] Không thể khởi động storage:', err.message);
+    process.exit(1);
+  }
+}
+
+startServer();
 

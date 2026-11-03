@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#080a0f">
   <title>TỔ CAM — Cổng Quản Lý &amp; Kích Hoạt Dành Cho CTV / Đại Lý 👑</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%91%91%3C/text%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%91%91%3C/text%3E%3C/svg%3E">
 
   <!-- Google Fonts & FontAwesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800;900&family=Nunito:wght@600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap&subset=vietnamese" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800;900&family=Nunito:wght@600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap&subset=vietnamese"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <style>
@@ -34,7 +38,12 @@
       --radius-lg: 20px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: var(--font-body);
       background: var(--bg-dark);
@@ -42,7 +51,7 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      background-image: 
+      background-image:
         radial-gradient(circle at 15% 15%, rgba(245, 158, 11, 0.08) 0%, transparent 45%),
         radial-gradient(circle at 85% 85%, rgba(139, 92, 246, 0.08) 0%, transparent 45%);
     }
@@ -67,7 +76,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
       flex-wrap: wrap;
     }
 
@@ -228,7 +237,7 @@
       border-radius: var(--radius-lg);
       padding: 26px;
       margin-bottom: 24px;
-      box-shadow: 0 12px 36px rgba(0,0,0,0.4);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
     }
 
     .panel-card-title {
@@ -535,7 +544,10 @@
     /* Modal Login & Register Overlay */
     .ctv-modal-overlay {
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       background: rgba(8, 10, 15, 0.88);
       backdrop-filter: blur(16px);
       z-index: 9999;
@@ -628,13 +640,19 @@
       font-size: 14px;
       z-index: 10000;
     }
+
     body {
       -webkit-user-select: none;
       -moz-user-select: none;
       -ms-user-select: none;
       user-select: none;
     }
-    input, textarea, [contenteditable="true"], code, pre {
+
+    input,
+    textarea,
+    [contenteditable="true"],
+    code,
+    pre {
       -webkit-user-select: text !important;
       -moz-user-select: text !important;
       -ms-user-select: text !important;
@@ -643,6 +661,7 @@
   </style>
   <script src="js/security-shield.js"></script>
 </head>
+
 <body>
 
   <!-- Toast Notification -->
@@ -654,23 +673,28 @@
       <div style="text-align: center; margin-bottom: 20px;">
         <div style="font-size: 38px; margin-bottom: 6px;">👑</div>
         <h2 style="font-family: var(--font-heading); font-size: 1.5rem;">CỔNG CỘNG TÁC VIÊN</h2>
-        <p style="color: var(--text-sub); font-size: 0.85rem;">Hệ thống kích hoạt Locket Gold &amp; VIP Pro tự động 24/7</p>
+        <p style="color: var(--text-sub); font-size: 0.85rem;">Hệ thống kích hoạt Locket Gold &amp; VIP Pro tự động 24/7
+        </p>
       </div>
 
       <div class="auth-tabs">
-        <button type="button" class="auth-tab-btn active" id="btn-tab-login" onclick="switchAuthTab('login')">Đăng Nhập</button>
-        <button type="button" class="auth-tab-btn" id="btn-tab-reg" onclick="switchAuthTab('register')">Đăng Ký CTV</button>
+        <button type="button" class="auth-tab-btn active" id="btn-tab-login" onclick="switchAuthTab('login')">Đăng
+          Nhập</button>
+        <button type="button" class="auth-tab-btn" id="btn-tab-reg" onclick="switchAuthTab('register')">Đăng Ký
+          CTV</button>
       </div>
 
       <!-- FORM ĐĂNG NHẬP -->
       <form id="form-login" onsubmit="handleCtvLogin(event)">
         <div class="form-group-ctv">
           <label>Tên Đăng Nhập:</label>
-          <input type="text" id="login-username" class="ctv-input" placeholder="Nhập tên đăng nhập..." required autocomplete="username">
+          <input type="text" id="login-username" class="ctv-input" placeholder="Nhập tên đăng nhập..." required
+            autocomplete="username">
         </div>
         <div class="form-group-ctv">
           <label>Mật Khẩu:</label>
-          <input type="password" id="login-password" class="ctv-input" placeholder="Nhập mật khẩu..." required autocomplete="current-password">
+          <input type="password" id="login-password" class="ctv-input" placeholder="Nhập mật khẩu..." required
+            autocomplete="current-password">
         </div>
         <button type="submit" class="btn-activate-main" style="width: 100%; justify-content: center; margin-top: 10px;">
           <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập Hệ Thống
@@ -711,7 +735,8 @@
   <!-- ==================== MODAL NẠP TIỀN VIETQR ==================== -->
   <div class="ctv-modal-overlay" id="deposit-modal" style="display: none;">
     <div class="deposit-modal-card">
-      <button type="button" class="modal-close-btn" onclick="closeDepositModal()"><i class="fa-solid fa-xmark"></i></button>
+      <button type="button" class="modal-close-btn" onclick="closeDepositModal()"><i
+          class="fa-solid fa-xmark"></i></button>
 
       <h3 style="font-family: var(--font-heading); font-size: 1.35rem; margin-bottom: 6px;">
         <i class="fa-solid fa-wallet" style="color: var(--gold-primary);"></i> Nạp Tiền Vào Ví CTV
@@ -722,33 +747,46 @@
 
       <!-- Step 1: Chọn số tiền -->
       <div id="deposit-step-1">
-        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:8px; color:var(--text-sub);">Chọn hoặc nhập số tiền muốn nạp:</label>
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:8px; color:var(--text-sub);">Chọn
+          hoặc nhập số tiền muốn nạp:</label>
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;">
           <button type="button" class="btn-mini-dns primary" onclick="selectDepositAmount(50000)">50.000đ</button>
           <button type="button" class="btn-mini-dns" onclick="selectDepositAmount(100000)">100.000đ</button>
           <button type="button" class="btn-mini-dns" onclick="selectDepositAmount(200000)">200.000đ</button>
           <button type="button" class="btn-mini-dns" onclick="selectDepositAmount(500000)">500.000đ</button>
         </div>
-        <input type="number" id="deposit-custom-amount" class="ctv-input" placeholder="Hoặc nhập số tiền khác (Tối thiểu 50.000đ)..." min="50000" style="margin-bottom: 16px;">
-        <button type="button" class="btn-activate-main" style="width: 100%; justify-content: center;" onclick="createDepositQR()">
+        <input type="number" id="deposit-custom-amount" class="ctv-input"
+          placeholder="Hoặc nhập số tiền khác (Tối thiểu 50.000đ)..." min="50000" style="margin-bottom: 16px;">
+        <button type="button" class="btn-activate-main" style="width: 100%; justify-content: center;"
+          onclick="createDepositQR()">
           <i class="fa-solid fa-qrcode"></i> Tạo Mã VietQR Nạp Tiền
         </button>
       </div>
 
       <!-- Step 2: Hiển thị VietQR -->
       <div id="deposit-step-2" style="display: none; text-align: center;">
-        <img id="deposit-qr-img" src="" alt="VietQR" style="max-width: 230px; border-radius: 14px; margin: 0 auto 14px auto; display: block; border: 2px solid rgba(245,158,11,0.4);">
-        <div style="background: rgba(0,0,0,0.4); border-radius: 12px; padding: 14px; text-align: left; font-size: 13px; margin-bottom: 14px; border: 1px solid var(--border-subtle);">
+        <img id="deposit-qr-img" src="" alt="VietQR"
+          style="max-width: 230px; border-radius: 14px; margin: 0 auto 14px auto; display: block; border: 2px solid rgba(245,158,11,0.4);">
+        <div
+          style="background: rgba(0,0,0,0.4); border-radius: 12px; padding: 14px; text-align: left; font-size: 13px; margin-bottom: 14px; border: 1px solid var(--border-subtle);">
           <div style="margin-bottom: 6px;">Ngân hàng: <b id="dep-bank-name">VPBank</b></div>
-          <div style="margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <div
+            style="margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
             <div>Số tài khoản: <b id="dep-bank-acc" style="color: #FDE68A; font-size: 14px;">2027022007</b></div>
-            <button type="button" class="btn-copy-mini" onclick="copyText(document.getElementById('dep-bank-acc').innerText)"><i class="fa-solid fa-copy"></i> Sao chép</button>
+            <button type="button" class="btn-copy-mini"
+              onclick="copyText(document.getElementById('dep-bank-acc').innerText)"><i class="fa-solid fa-copy"></i> Sao
+              chép</button>
           </div>
           <div style="margin-bottom: 6px;">Chủ tài khoản: <b>NGUYEN MINH HIEP</b></div>
-          <div style="margin-bottom: 6px;">Số tiền: <b id="dep-amount-val" style="color: var(--gold-light); font-size: 14px;">100.000đ</b></div>
+          <div style="margin-bottom: 6px;">Số tiền: <b id="dep-amount-val"
+              style="color: var(--gold-light); font-size: 14px;">100.000đ</b></div>
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-            <div>Nội dung CK: <code id="dep-memo-val" style="color: #FDE68A; background: rgba(255,255,255,0.15); padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: 14px;">NAP...</code></div>
-            <button type="button" class="btn-copy-mini" onclick="copyText(document.getElementById('dep-memo-val').innerText)"><i class="fa-solid fa-copy"></i> Sao chép</button>
+            <div>Nội dung CK: <code id="dep-memo-val"
+                style="color: #FDE68A; background: rgba(255,255,255,0.15); padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: 14px;">NAP...</code>
+            </div>
+            <button type="button" class="btn-copy-mini"
+              onclick="copyText(document.getElementById('dep-memo-val').innerText)"><i class="fa-solid fa-copy"></i> Sao
+              chép</button>
           </div>
         </div>
         <p style="font-size: 12px; color: var(--emerald); font-weight: 700;">
@@ -789,7 +827,8 @@
     <!-- Zalo Community Banner Dành Cho CTV -->
     <div class="ctv-zalo-banner">
       <div style="display: flex; align-items: center; gap: 14px;">
-        <div style="width: 44px; height: 44px; min-width: 44px; border-radius: 12px; background: linear-gradient(135deg, #0068FF, #004EC4); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; box-shadow: 0 4px 14px rgba(0, 104, 255, 0.4);">
+        <div
+          style="width: 44px; height: 44px; min-width: 44px; border-radius: 12px; background: linear-gradient(135deg, #0068FF, #004EC4); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; box-shadow: 0 4px 14px rgba(0, 104, 255, 0.4);">
           <i class="fa-solid fa-bullhorn"></i>
         </div>
         <div>
@@ -805,10 +844,14 @@
         </div>
       </div>
       <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-        <a href="https://zalo.me/g/shprtxgdepc6wscxwmtg" target="_blank" rel="noopener noreferrer" class="btn-activate-main" style="padding: 10px 18px; height: 40px; font-size: 13.5px; background: linear-gradient(135deg, #0068FF, #004EC4); color: #fff; text-decoration: none; box-shadow: 0 4px 14px rgba(0, 104, 255, 0.4);">
+        <a href="https://zalo.me/g/shprtxgdepc6wscxwmtg" target="_blank" rel="noopener noreferrer"
+          class="btn-activate-main"
+          style="padding: 10px 18px; height: 40px; font-size: 13.5px; background: linear-gradient(135deg, #0068FF, #004EC4); color: #fff; text-decoration: none; box-shadow: 0 4px 14px rgba(0, 104, 255, 0.4);">
           <i class="fa-solid fa-users"></i> Vào Nhóm Zalo 1 (Mới Nhất)
         </a>
-        <a href="https://zalo.me/g/qyke3ds1tqzjwudjznrc" target="_blank" rel="noopener noreferrer" class="btn-action-input" style="padding: 0 16px; height: 40px; font-size: 13.5px; border-color: rgba(0, 104, 255, 0.4); color: #38BDF8; text-decoration: none;">
+        <a href="https://zalo.me/g/qyke3ds1tqzjwudjznrc" target="_blank" rel="noopener noreferrer"
+          class="btn-action-input"
+          style="padding: 0 16px; height: 40px; font-size: 13.5px; border-color: rgba(0, 104, 255, 0.4); color: #38BDF8; text-decoration: none;">
           <i class="fa-solid fa-user-group"></i> Vào Nhóm Zalo 2 (Dự Phòng)
         </a>
       </div>
@@ -822,7 +865,8 @@
       <button type="button" class="service-tab-btn tab-filter" id="tab-btn-filter" onclick="switchServiceTab('filter')">
         <i class="fa-solid fa-wand-magic-sparkles"></i> Locket Gold VIP
       </button>
-      <button type="button" class="service-tab-btn tab-spotify" id="tab-btn-spotify" onclick="switchServiceTab('spotify')">
+      <button type="button" class="service-tab-btn tab-spotify" id="tab-btn-spotify"
+        onclick="switchServiceTab('spotify')">
         <i class="fa-brands fa-spotify"></i> Spotify
       </button>
     </div>
@@ -835,9 +879,9 @@
       </div>
 
       <!-- Tải DNS bar -->
-      <div class="dns-actions-bar">
+      <div class="dns-actions-bar" id="ctv-dns-actions" style="display: none;">
         <span class="dns-label" id="dns-bar-label">Tải DNS Thường:</span>
-        <a href="https://locket.2707226.xyz/dns" class="btn-mini-dns primary" id="btn-download-dns" target="_blank">
+        <a href="#" class="btn-mini-dns primary" id="btn-download-dns" target="_blank" rel="noopener noreferrer">
           <i class="fa-brands fa-safari"></i> Tải DNS
         </a>
         <button type="button" class="btn-mini-dns" onclick="copyDnsLink()">
@@ -852,7 +896,8 @@
       <div class="form-group-ctv">
         <label>Username Locket của khách:</label>
         <div class="input-with-action">
-          <input type="text" id="cust-username-input" class="ctv-input" placeholder="ví dụ: cuccam (không cần @)..." autocomplete="off" spellcheck="false">
+          <input type="text" id="cust-username-input" class="ctv-input" placeholder="ví dụ: cuccam (không cần @)..."
+            autocomplete="off" spellcheck="false">
           <button type="button" class="btn-action-input" onclick="handleCtvLookupUid()">
             <i class="fa-solid fa-magnifying-glass"></i> Tra UID
           </button>
@@ -860,11 +905,15 @@
       </div>
 
       <!-- Khung xem thông tin khách đã tra cứu (UID, Avatar, Name) -->
-      <div id="cust-preview-box" style="display: none; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; align-items: center; gap: 14px;">
-        <img id="cust-preview-avatar" src="" alt="Avatar" style="width: 44px; height: 44px; border-radius: 10px; object-fit: cover; border: 1px solid rgba(245,158,11,0.4);">
+      <div id="cust-preview-box"
+        style="display: none; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; align-items: center; gap: 14px;">
+        <img id="cust-preview-avatar" src="" alt="Avatar"
+          style="width: 44px; height: 44px; border-radius: 10px; object-fit: cover; border: 1px solid rgba(245,158,11,0.4);">
         <div>
           <b id="cust-preview-fullname" style="font-size: 14.5px; color: #fff;">Nguyễn Văn A</b>
-          <div style="font-size: 12px; color: var(--text-sub);">Username: <span id="cust-preview-user" style="color: var(--gold-light);">@user</span> • UID: <code id="cust-preview-uid" style="color: #FDE68A;">...</code></div>
+          <div style="font-size: 12px; color: var(--text-sub);">Username: <span id="cust-preview-user"
+              style="color: var(--gold-light);">@user</span> • UID: <code id="cust-preview-uid"
+              style="color: #FDE68A;">...</code></div>
         </div>
       </div>
 
@@ -895,7 +944,8 @@
       </div>
 
       <div class="input-with-action">
-        <input type="text" id="search-cust-input" class="ctv-input" placeholder="Tìm theo UID khách hoặc username Locket..." onkeyup="filterCustomersTable()">
+        <input type="text" id="search-cust-input" class="ctv-input"
+          placeholder="Tìm theo UID khách hoặc username Locket..." onkeyup="filterCustomersTable()">
         <button type="button" class="btn-action-input" onclick="filterCustomersTable()">
           <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
         </button>
@@ -925,5 +975,5 @@
 
   <script src="js/ctv.js"></script>
 </body>
-</html>
 
+</html>

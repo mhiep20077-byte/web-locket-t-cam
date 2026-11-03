@@ -11,6 +11,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const plist = require('plist');
 const https = require('https');
 const http = require('http');
 
@@ -269,6 +270,47 @@ function getConfiguredDnsUrl(username, configuredLink, fallbackLink) {
 
 function getRegularDnsUrl(username, settings = loadSettings()) {
   return getConfiguredDnsUrl(username, settings.dnsLinkRegular, 'https://doh.2707226.xyz/{username}');
+}
+
+function personalizeMobileConfig(buffer, username) {
+  const cleanUsername = cleanLocketUsername(username);
+  if (!cleanUsername) return buffer;
+
+  const source = buffer.toString('utf8').trimStart();
+  if (!source.startsWith('<?xml') && !source.startsWith('<plist')) return buffer;
+
+  try {
+    const profile = plist.parse(source);
+    if (!profile || typeof profile !== 'object' || profile.PayloadSignature) return buffer;
+
+    const displayName = `LocketGold - ${cleanUsername}`;
+    profile.PayloadDisplayName = displayName;
+    if (typeof profile.PayloadDescription === 'string' && /locketgold/i.test(profile.PayloadDescription)) {
+      profile.PayloadDescription = displayName;
+    }
+
+    const updatePayloadNames = (value) => {
+      if (!value || typeof value !== 'object') return;
+      if (Array.isArray(value)) {
+        value.forEach(updatePayloadNames);
+        return;
+      }
+
+      if (typeof value.PayloadDisplayName === 'string' && /locketgold/i.test(value.PayloadDisplayName)) {
+        value.PayloadDisplayName = displayName;
+      }
+      if (typeof value.PayloadDescription === 'string' && /locketgold/i.test(value.PayloadDescription)) {
+        value.PayloadDescription = displayName;
+      }
+      Object.values(value).forEach(updatePayloadNames);
+    };
+
+    updatePayloadNames(profile.PayloadContent);
+    return Buffer.from(plist.build(profile), 'utf8');
+  } catch (err) {
+    console.warn('[PROFILE] Không thể cá nhân hóa tên profile; trả file gốc:', err.message);
+    return buffer;
+  }
 }
 
 // ============================================================
@@ -1099,9 +1141,9 @@ app.all([
         }
       });
       if (resp.ok) {
-        const buffer = Buffer.from(await resp.arrayBuffer());
+        const buffer = personalizeMobileConfig(Buffer.from(await resp.arrayBuffer()), username);
         res.setHeader('Content-Type', 'application/x-apple-aspen-config; charset=utf-8');
-        res.setHeader('Content-Disposition', 'attachment; filename="LocketGold.mobileconfig"');
+        res.setHeader('Content-Disposition', `attachment; filename="LocketGold-${username || 'profile'}.mobileconfig"`);
         return res.send(buffer);
       }
     } catch (e) {
@@ -1115,9 +1157,9 @@ app.all([
       headers: cucamKey ? { 'Authorization': `Bearer ${cucamKey}` } : {}
     });
     if (globalRes.ok) {
-      const buffer = Buffer.from(await globalRes.arrayBuffer());
+      const buffer = personalizeMobileConfig(Buffer.from(await globalRes.arrayBuffer()), username);
       res.setHeader('Content-Type', 'application/x-apple-aspen-config; charset=utf-8');
-      res.setHeader('Content-Disposition', 'attachment; filename="LocketGold.mobileconfig"');
+      res.setHeader('Content-Disposition', `attachment; filename="LocketGold-${username || 'profile'}.mobileconfig"`);
       return res.send(buffer);
     }
   } catch (e) {
@@ -1125,12 +1167,13 @@ app.all([
   }
 
   // 4. Nếu máy chủ Cụ Cam tạm thời nghẽn mạng, tạo profile DNS DoH dự phòng cục bộ
+  const fallbackProfileName = username ? `LocketGold - ${username}` : 'Locket Gold DNS Profile';
   const fallbackPlist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>PayloadDisplayName</key>
-    <string>Locket Gold DNS Profile</string>
+    <string>${fallbackProfileName}</string>
     <key>PayloadIdentifier</key>
     <string>com.tocam.locket.dns</string>
     <key>PayloadRemovalDisallowed</key>
@@ -1152,7 +1195,7 @@ app.all([
                 <string>https://dns.locket.2707226.xyz/dns-query</string>
             </dict>
             <key>PayloadDisplayName</key>
-            <string>Locket Gold DNS</string>
+            <string>${fallbackProfileName}</string>
             <key>PayloadIdentifier</key>
             <string>com.tocam.locket.dns.doh</string>
             <key>PayloadType</key>
@@ -1166,7 +1209,7 @@ app.all([
 </dict>
 </plist>`;
   res.setHeader('Content-Type', 'application/x-apple-aspen-config; charset=utf-8');
-  res.setHeader('Content-Disposition', 'attachment; filename="LocketGold.mobileconfig"');
+  res.setHeader('Content-Disposition', `attachment; filename="LocketGold-${username || 'profile'}.mobileconfig"`);
   return res.send(Buffer.from(fallbackPlist, 'utf8'));
 });
 
@@ -1952,8 +1995,8 @@ app.post('/api/ctv/activate', requireCtv, async (req, res) => {
     planId: selectedPlan.id,
     planName: selectedPlan.name,
     coinsDeducted: requiredCoin,
-    status: 'ACTIVE',
-    mobileconfigUrl: mobileconfigUrl || `/profile?username=${encodeURIComponent(cleanUser)}`,
+    status: activationSuccess ? 'ACTIVE' : 'FAILED',
+    mobileconfigUrl: activationSuccess ? (mobileconfigUrl || `/profile?username=${encodeURIComponent(cleanUser)}`) : null,
     filterShortUrl: filterShortUrl || null,
     apiLog: apiLog,
     expiresAt: formatDate(expiryDate),
@@ -1968,11 +2011,14 @@ app.post('/api/ctv/activate', requireCtv, async (req, res) => {
   }
 
   return res.json({
-    ok: true,
-    message: `Đã kích hoạt thành công gói "${selectedPlan.name}" cho @${cleanUser}!`,
+    ok: activationSuccess,
+    activationSuccess,
+    message: activationSuccess
+      ? `Đã kích hoạt thành công gói "${selectedPlan.name}" cho @${cleanUser}!`
+      : (apiLog?.error || 'Nhà cung cấp chưa xác nhận kích hoạt; chưa có link DNS.'),
     customer: newCust,
     remainingCoins: currentCtv ? currentCtv.coins : userCoins - requiredCoin,
-    dnsUrl: mobileconfigUrl || `/profile?username=${encodeURIComponent(cleanUser)}`,
+    dnsUrl: activationSuccess ? (mobileconfigUrl || `/profile?username=${encodeURIComponent(cleanUser)}`) : null,
     filterShortUrl: filterShortUrl
   });
 });

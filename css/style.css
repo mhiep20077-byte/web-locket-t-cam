@@ -119,8 +119,11 @@ body {
 .ambient-blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(120px);
+  filter: blur(90px);
   opacity: 0.14;
+  will-change: transform;
+  transform: translateZ(0);
+  pointer-events: none;
 }
 
 .blob-gold {
@@ -2628,4 +2631,67 @@ body {
 .summary-line.total-pay {
   font-size: 14.5px;
   font-weight: 800;
+}
+
+
+/* ============================================================
+   TỐI ƯU HÓA HIỆU NĂNG CHO THIẾT BỊ DI ĐỘNG (MOBILE PERFORMANCE OPTIMIZATION)
+   Loại bỏ 300ms tap delay, GPU hardware acceleration, 60fps/120fps smooth scroll
+   ============================================================ */
+
+/* Loại bỏ 300ms delay khi chạm trên điện thoại & tắt vệt xanh xám tap highlight */
+a, button, input, select, textarea,
+.btn-primary, .btn-chip, .plan-card, .btn-pricing-select,
+.frame-item-card, .swatch-btn, .btn-zoom-step, .btn-zoom-action,
+.mobile-bar-btn, .step-item, .faq-item, .chip-lookup, .chip-zalo {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Kích hoạt tăng tốc phần cứng GPU cho cuộn trang */
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
+}
+
+/* Tối ưu hóa mạnh trên thiết bị di động (màn hình <= 768px) */
+@media (max-width: 768px) {
+  /* Tắt các blob blur cố định nền - nguyên nhân hàng đầu gây tụt fps khi vuốt màn hình */
+  .ambient-glow {
+    display: none !important;
+  }
+
+  /* Giảm tải tính toán blur trên các thanh cố định */
+  .top-nav {
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+
+  .mobile-sticky-bar {
+    background: rgba(8, 10, 15, 0.97) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
+
+  /* Khóa layer GPU chống giật lag cho modal & card */
+  .modal-dialog,
+  .plan-card,
+  .profile-preview-card,
+  .pricing-card-vip {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* Tối ưu hóa bento grid để cuộn siêu mượt */
+  .bento-card, .showcase-card {
+    transform: translateZ(0);
+    content-visibility: auto;
+    contain-intrinsic-size: 200px;
+  }
 }

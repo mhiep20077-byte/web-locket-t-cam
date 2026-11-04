@@ -409,6 +409,175 @@
       object-fit: fill;
       pointer-events: none;
       z-index: 2;
+      transition: transform 0.05s ease-out;
+    }
+
+    .widget-safe-area-overlay {
+      position: absolute;
+      inset: 14px;
+      border: 2px dashed rgba(255, 255, 255, 0.55);
+      border-radius: 26px;
+      pointer-events: none;
+      z-index: 4;
+      transition: opacity 0.2s;
+    }
+
+    /* Zoom & Frame Adjustment Toolbar (Neobrutalism UI) */
+    .frame-zoom-box {
+      background: #FEFBF3;
+      border: 2px solid #000000;
+      border-radius: 14px;
+      box-shadow: 2.5px 2.5px 0 #000000;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      color: #0F172A;
+    }
+
+    .zoom-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .zoom-title-label {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #000;
+      min-width: 46px;
+    }
+
+    .btn-zoom-step {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #FFFFFF;
+      border: 2px solid #000000;
+      border-radius: 8px;
+      box-shadow: 2px 2px 0 #000000;
+      font-size: 17px;
+      font-weight: 900;
+      color: #000;
+      cursor: pointer;
+      transition: all 0.1s;
+      user-select: none;
+    }
+
+    .btn-zoom-step:hover {
+      background: #F1F5F9;
+    }
+
+    .btn-zoom-step:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 #000000;
+    }
+
+    #frame-zoom-slider {
+      flex: 1;
+      height: 8px;
+      border-radius: 4px;
+      background: #E2E8F0;
+      outline: none;
+      accent-color: #0284C7;
+      cursor: pointer;
+    }
+
+    .zoom-value-label {
+      font-size: 13.5px;
+      font-weight: 900;
+      color: #000;
+      min-width: 44px;
+      text-align: right;
+    }
+
+    .zoom-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .btn-zoom-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 8px 4px;
+      border: 2px solid #000000;
+      border-radius: 8px;
+      box-shadow: 2px 2px 0 #000000;
+      font-size: 11px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: all 0.1s;
+      white-space: nowrap;
+    }
+
+    .btn-zoom-action:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 #000000;
+    }
+
+    .btn-zoom-cover {
+      background: #00B87A;
+      color: #FFFFFF;
+    }
+
+    .btn-zoom-cover:hover {
+      background: #059669;
+    }
+
+    .btn-zoom-center {
+      background: #0284C7;
+      color: #FFFFFF;
+    }
+
+    .btn-zoom-center:hover {
+      background: #0369A1;
+    }
+
+    .btn-zoom-reset {
+      background: #FFFFFF;
+      color: #000000;
+    }
+
+    .btn-zoom-reset:hover {
+      background: #F8FAFC;
+    }
+
+    .btn-zoom-clear {
+      background: #FFE4E6;
+      color: #991B1B;
+    }
+
+    .btn-zoom-clear:hover {
+      background: #FECDD3;
+    }
+
+    .zoom-divider-line {
+      height: 1px;
+      background: #E2E8F0;
+      margin: 10px 0 8px 0;
+    }
+
+    .safe-area-toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #000000;
+      cursor: pointer;
+      user-select: none;
+      margin: 0;
+    }
+
+    .safe-area-toggle-label input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      accent-color: #0284C7;
+      cursor: pointer;
     }
 
     .widget-badge-overlay {
@@ -807,9 +976,43 @@
           <div class="ios-widget-mockup" id="widget-mockup-box">
             <div class="widget-sample-photo" id="widget-photo-bg"></div>
             <img class="widget-frame-layer" id="widget-frame-layer" src="" alt="Khung ảnh" style="display: none;">
+            <div class="widget-safe-area-overlay" id="widget-safe-area-overlay"></div>
             <div class="widget-badge-overlay" id="widget-frame-pill">
               Chiếc widget của bạn
             </div>
+          </div>
+
+          <!-- Zoom & Frame Adjustment Toolbar (Công Cụ Căn Chỉnh Khung Chuẩn) -->
+          <div class="frame-zoom-box" id="frame-zoom-box">
+            <div class="zoom-slider-row">
+              <span class="zoom-title-label">Zoom:</span>
+              <button type="button" class="btn-zoom-step" onclick="adjustFrameZoom(-5)" title="Thu nhỏ 5%">-</button>
+              <input type="range" id="frame-zoom-slider" min="30" max="200" value="100" step="1" oninput="onFrameZoomInput(this.value)">
+              <button type="button" class="btn-zoom-step" onclick="adjustFrameZoom(5)" title="Phóng to 5%">+</button>
+              <span class="zoom-value-label" id="frame-zoom-label">100%</span>
+            </div>
+
+            <div class="zoom-actions-grid">
+              <button type="button" class="btn-zoom-action btn-zoom-cover" onclick="setFrameFitCover()" title="Phủ kín 100% tỷ lệ chuẩn">
+                <i class="fa-solid fa-expand"></i> <span>Phủ Kín 100%</span>
+              </button>
+              <button type="button" class="btn-zoom-action btn-zoom-center" onclick="setFrameCenter()" title="Căn giữa tâm">
+                <i class="fa-solid fa-crosshairs"></i> <span>Căn Đúng Tâm</span>
+              </button>
+              <button type="button" class="btn-zoom-action btn-zoom-reset" onclick="resetFrameTransform()" title="Đặt lại gốc 100%">
+                <i class="fa-solid fa-rotate-left"></i> <span>Đặt Lại Gốc</span>
+              </button>
+              <button type="button" class="btn-zoom-action btn-zoom-clear" onclick="clearSelectedFrame()" title="Hủy ảnh khung đang chọn">
+                <i class="fa-solid fa-trash-can"></i> <span>Hủy Ảnh</span>
+              </button>
+            </div>
+
+            <div class="zoom-divider-line"></div>
+
+            <label class="safe-area-toggle-label">
+              <input type="checkbox" id="safe-area-toggle" checked onchange="toggleSafeAreaGuide(this.checked)">
+              <span>Hiện Vùng An Toàn Widget</span>
+            </label>
           </div>
 
           <!-- Swatches / Test photo picker -->

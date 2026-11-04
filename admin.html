@@ -657,6 +657,11 @@
         </button>
       </li>
       <li class="nav-item">
+        <button type="button" onclick="switchAdminTab('tab-coupons')">
+          <i class="fa-solid fa-ticket" style="color: #EC4899;"></i> Mã Giảm Giá 🏷️
+        </button>
+      </li>
+      <li class="nav-item">
         <button type="button" onclick="switchAdminTab('tab-gallery')">
           <i class="fa-solid fa-images"></i> Ảnh Showroom VIP
         </button>
@@ -1937,6 +1942,167 @@
               <tr>
                 <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-sub);">
                   Chưa có lượt đổi khung nào được ghi nhận
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: QUẢN LÝ MÃ GIẢM GIÁ (COUPONS) ==================== -->
+    <div id="tab-coupons" class="admin-tab-pane" style="display: none;">
+      <div class="page-title">
+        <div>
+          <span><i class="fa-solid fa-ticket" style="color: #EC4899;"></i> Quản Lý Mã Giảm Giá &amp; Khuyến Mãi Locket VIP 🏷️</span>
+          <p style="font-size: 13.5px; color: var(--text-sub); margin-top: 4px;">
+            Thiết lập chi tiết từng mã giảm giá, giới hạn ngân sách, số lượt dùng và đối tượng áp dụng
+          </p>
+        </div>
+        <button type="button" class="btn-primary" onclick="openAddCouponForm()">
+          <i class="fa-solid fa-plus"></i> Tạo Mã Giảm Giá Mới
+        </button>
+      </div>
+
+      <!-- Thẻ Thống Kê Nhanh -->
+      <div class="metrics-grid" style="margin-bottom: 24px;">
+        <div class="metric-card">
+          <div class="metric-head">
+            <span class="metric-label">TỔNG MÃ KHUYẾN MÃI</span>
+            <i class="fa-solid fa-tags" style="color: #EC4899;"></i>
+          </div>
+          <div class="metric-value" id="stat-total-coupons">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-head">
+            <span class="metric-label">MÃ ĐANG KÍCH HOẠT</span>
+            <i class="fa-solid fa-circle-check" style="color: #10B981;"></i>
+          </div>
+          <div class="metric-value" id="stat-active-coupons" style="color: #10B981;">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-head">
+            <span class="metric-label">TỔNG LƯỢT ĐÃ DÙNG</span>
+            <i class="fa-solid fa-users" style="color: #38BDF8;"></i>
+          </div>
+          <div class="metric-value" id="stat-used-coupons" style="color: #38BDF8;">0</div>
+        </div>
+      </div>
+
+      <!-- Khung Thêm / Sửa Mã Giảm Giá Từng Tí Một (Granular Form) -->
+      <div class="panel-box" id="coupon-editor-panel" style="margin-bottom: 24px;">
+        <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span id="coupon-form-title"><i class="fa-solid fa-pen-to-square" style="color: #EC4899;"></i> Tạo Mã Giảm Giá Mới</span>
+          <button type="button" class="btn-cancel" id="btn-cancel-coupon-edit" style="display: none; padding: 4px 10px; font-size: 12px;" onclick="resetCouponForm()">
+            <i class="fa-solid fa-xmark"></i> Hủy chế độ sửa
+          </button>
+        </div>
+
+        <form id="form-coupon-editor" onsubmit="event.preventDefault(); saveAdminCoupon();">
+          <input type="hidden" id="coupon-edit-id" value="">
+
+          <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 16px;">
+            <div class="form-group">
+              <label class="form-label">Mã Code (Khách nhập để giảm giá) *</label>
+              <input type="text" id="coupon-input-code" class="form-input" placeholder="VD: VIPCAM20, LOCKET50K..." style="text-transform: uppercase; font-weight: 800; letter-spacing: 1px;" required>
+              <small style="color: var(--text-sub); font-size: 11.5px;">Tự động viết hoa, không dấu cách</small>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Tên Chiến Dịch / Mô Tả Khuyến Mãi *</label>
+              <input type="text" id="coupon-input-name" class="form-input" placeholder="VD: Giảm 20.000đ cho gói VIP 1 năm..." required>
+            </div>
+          </div>
+
+          <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+            <div class="form-group">
+              <label class="form-label">Loại Giảm Giá *</label>
+              <select id="coupon-input-type" class="form-select" onchange="handleCouponTypeChange()">
+                <option value="fixed">Số tiền cố định (VNĐ)</option>
+                <option value="percent">Theo phần trăm (%)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" id="lbl-coupon-val">Mức Giảm (VNĐ) *</label>
+              <input type="number" id="coupon-input-val" class="form-input" placeholder="20000" min="1" required>
+            </div>
+
+            <div class="form-group" id="group-max-discount" style="display: none;">
+              <label class="form-label">Giảm Tối Đa (VNĐ)</label>
+              <input type="number" id="coupon-input-max" class="form-input" placeholder="30000 (0 = không giới hạn)" min="0">
+              <small style="color: var(--text-sub); font-size: 11px;">Mức chặn trần khi giảm theo %</small>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Đơn Hàng Tối Thiểu (VNĐ)</label>
+              <input type="number" id="coupon-input-min-order" class="form-input" placeholder="50000 (0 = không yêu cầu)" min="0" value="0">
+            </div>
+          </div>
+
+          <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 16px;">
+            <div class="form-group">
+              <label class="form-label">Áp Dụng Cho Gói Dịch Vụ *</label>
+              <select id="coupon-input-plans" class="form-select">
+                <option value="all">Tất cả các gói (VIP &amp; Gold Thường)</option>
+                <option value="vip" selected>Chỉ các gói LOCKET VIP 👑</option>
+                <option value="regular">Chỉ các gói LOCKET GOLD Thường ⚡</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Giới Hạn Lượt Dùng Toàn Web</label>
+              <input type="number" id="coupon-input-limit" class="form-input" placeholder="100 (0 = không giới hạn)" min="0" value="100">
+              <small style="color: var(--text-sub); font-size: 11px;">Hết số lượt web sẽ báo mã đã hết hạn</small>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Ngày Hết Hạn</label>
+              <input type="date" id="coupon-input-end-date" class="form-input">
+              <small style="color: var(--text-sub); font-size: 11px;">Để trống nếu mã không bao giờ hết hạn</small>
+            </div>
+          </div>
+
+          <div class="form-row" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-top: 10px; border-top: 1px solid var(--border);">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #fff; font-weight: 700; font-size: 13.5px;">
+              <input type="checkbox" id="coupon-input-active" checked style="width: 18px; height: 18px; accent-color: #EC4899;">
+              <span>Kích hoạt mã này ngay sau khi lưu</span>
+            </label>
+
+            <button type="submit" class="btn-save" id="btn-save-coupon" style="background: linear-gradient(135deg, #EC4899 0%, #D946EF 100%);">
+              <i class="fa-solid fa-floppy-disk"></i> Lưu Mã Giảm Giá
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Bảng Danh Sách Mã Giảm Giá -->
+      <div class="panel-box">
+        <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span><i class="fa-solid fa-list-check" style="color: var(--gold);"></i> Danh Sách Mã Giảm Giá Đang Có</span>
+          <button type="button" class="btn-cancel" style="padding: 4px 10px; font-size: 12px;" onclick="loadAdminCoupons(true)">
+            <i class="fa-solid fa-rotate" id="icon-reload-coupons"></i> Làm mới
+          </button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>MÃ CODE</th>
+                <th>CHIẾN DỊCH / TÊN MÃ</th>
+                <th>MỨC GIẢM</th>
+                <th>ÁP DỤNG CHO</th>
+                <th>LƯỢT DÙNG</th>
+                <th>HẠN DÙNG</th>
+                <th>TRẠNG THÁI</th>
+                <th>THAO TÁC</th>
+              </tr>
+            </thead>
+            <tbody id="coupons-table-body">
+              <tr>
+                <td colspan="8" style="text-align: center; padding: 24px; color: var(--text-sub);">
+                  <i class="fa-solid fa-spinner fa-spin"></i> Đang tải danh sách mã giảm giá...
                 </td>
               </tr>
             </tbody>

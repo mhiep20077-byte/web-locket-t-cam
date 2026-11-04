@@ -179,10 +179,166 @@ const DEFAULT_KAWAII_FRAMES = [
   }
 ];
 
+// Danh sách mã giảm giá mặc định cho Locket VIP & Gold
+const DEFAULT_COUPONS = [
+  {
+    id: 'coup_vipcam20',
+    code: 'VIPCAM20',
+    name: 'Giảm 20.000đ Gói Locket VIP',
+    type: 'fixed', // 'fixed' (VNĐ) | 'percent' (%)
+    value: 20000,
+    maxDiscount: 0,
+    minOrder: 50000,
+    applicablePlans: 'vip', // 'all' | 'vip' | 'regular' | specific plan id
+    usageLimit: 500,
+    usedCount: 0,
+    startDate: '2026-01-01',
+    endDate: '2027-12-31',
+    isActive: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'coup_chaoban10',
+    code: 'CHAOBAN10',
+    name: 'Chào Bạn Mới - Giảm 10%',
+    type: 'percent',
+    value: 10,
+    maxDiscount: 25000,
+    minOrder: 50000,
+    applicablePlans: 'all',
+    usageLimit: 500,
+    usedCount: 0,
+    startDate: '2026-01-01',
+    endDate: '2027-12-31',
+    isActive: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'coup_gold5k',
+    code: 'GOLD5K',
+    name: 'Khuyến Mãi Locket Gold Thường -5k',
+    type: 'fixed',
+    value: 5000,
+    maxDiscount: 0,
+    minOrder: 30000,
+    applicablePlans: 'regular',
+    usageLimit: 300,
+    usedCount: 0,
+    startDate: '2026-01-01',
+    endDate: '2027-12-31',
+    isActive: true,
+    createdAt: new Date().toISOString()
+  }
+];
+
+function evaluateCoupon({ code, planType, planId, originalPrice }, settings = loadSettings()) {
+  const coupons = settings.coupons || [];
+  const cleanCode = String(code || '').trim().toUpperCase();
+
+  if (!cleanCode) {
+    return { ok: false, message: 'Vui lòng nhập mã giảm giá!' };
+  }
+
+  const coupon = coupons.find(c => String(c.code).trim().toUpperCase() === cleanCode);
+  if (!coupon) {
+    return { ok: false, message: `Mã giảm giá "${cleanCode}" không tồn tại hoặc đã hết hiệu lực!` };
+  }
+
+  if (!coupon.isActive) {
+    return { ok: false, message: `Mã giảm giá "${cleanCode}" hiện đang tạm dừng!` };
+  }
+
+  // Kiểm tra hạn sử dụng
+  const now = new Date();
+  if (coupon.startDate) {
+    const sDate = new Date(coupon.startDate);
+    if (!isNaN(sDate.getTime()) && now < sDate) {
+      return { ok: false, message: `Mã giảm giá "${cleanCode}" chưa đến ngày kích hoạt!` };
+    }
+  }
+  if (coupon.endDate) {
+    const eDate = new Date(coupon.endDate);
+    if (!isNaN(eDate.getTime())) {
+      eDate.setHours(23, 59, 59, 999);
+      if (now > eDate) {
+        return { ok: false, message: `Mã giảm giá "${cleanCode}" đã hết hạn sử dụng!` };
+      }
+    }
+  }
+
+  // Kiểm tra giới hạn số lượt sử dụng
+  const limit = Number(coupon.usageLimit) || 0;
+  const used = Number(coupon.usedCount) || 0;
+  if (limit > 0 && used >= limit) {
+    return { ok: false, message: `Mã giảm giá "${cleanCode}" đã hết lượt sử dụng!` };
+  }
+
+  // Kiểm tra giá trị đơn tối thiểu
+  const price = Number(originalPrice) || 0;
+  const minOrder = Number(coupon.minOrder) || 0;
+  if (minOrder > 0 && price < minOrder) {
+    return {
+      ok: false,
+      message: `Đơn hàng tối thiểu phải từ ${minOrder.toLocaleString('vi-VN')}đ để sử dụng mã này!`
+    };
+  }
+
+  // Kiểm tra gói dịch vụ áp dụng
+  const app = coupon.applicablePlans || 'all';
+  if (app === 'vip' && planType !== 'vip') {
+    return { ok: false, message: 'Mã giảm giá này chỉ áp dụng cho các gói Locket VIP!' };
+  }
+  if (app === 'regular' && planType !== 'regular') {
+    return { ok: false, message: 'Mã giảm giá này chỉ áp dụng cho các gói Locket Gold Thường!' };
+  }
+  if (app !== 'all' && app !== 'vip' && app !== 'regular') {
+    if (planId && app !== planId) {
+      return { ok: false, message: 'Mã giảm giá này không áp dụng cho gói đã chọn!' };
+    }
+  }
+
+  // Tính số tiền giảm giá
+  let discountAmount = 0;
+  const val = Number(coupon.value) || 0;
+  if (coupon.type === 'percent') {
+    discountAmount = Math.round((price * val) / 100);
+    const maxCap = Number(coupon.maxDiscount) || 0;
+    if (maxCap > 0 && discountAmount > maxCap) {
+      discountAmount = maxCap;
+    }
+  } else {
+    discountAmount = val;
+  }
+
+  if (discountAmount > price) {
+    discountAmount = price;
+  }
+
+  // Tối thiểu thanh toán 1,000 VND
+  const finalPrice = Math.max(1000, price - discountAmount);
+
+  return {
+    ok: true,
+    coupon: {
+      id: coupon.id,
+      code: coupon.code,
+      name: coupon.name,
+      type: coupon.type,
+      value: coupon.value,
+      discountAmount: discountAmount,
+      finalPrice: finalPrice,
+      originalPrice: price
+    }
+  };
+}
+
 function loadSettings() {
   const settings = loadCollection('settings', SETTINGS_FILE, {}, SETTINGS_EXAMPLE_FILE);
   if (!Array.isArray(settings.customFrames) || settings.customFrames.length === 0) {
     settings.customFrames = [...DEFAULT_KAWAII_FRAMES];
+  }
+  if (!Array.isArray(settings.coupons) || settings.coupons.length === 0) {
+    settings.coupons = [...DEFAULT_COUPONS];
   }
   return settings;
 }
@@ -752,10 +908,39 @@ app.get('/api/user/lookup', async (req, res) => {
 });
 
 // ============================================================
+// KIỂM TRA MÃ GIẢM GIÁ (COUPON)
+// ============================================================
+app.post('/api/coupon/check', (req, res) => {
+  const { code, planType, planId, amount } = req.body || {};
+  const settings = loadSettings();
+
+  const type = planType === 'vip' ? 'vip' : 'regular';
+  const plansList = (settings.plans && settings.plans[type]) ? settings.plans[type] : [];
+  const matchedPlan = plansList.find(p => p.id === planId || p.code === planId) || plansList[0];
+  const originalPrice = matchedPlan ? Number(matchedPlan.price) : Number(amount) || 75000;
+
+  const result = evaluateCoupon({
+    code,
+    planType: type,
+    planId: matchedPlan ? matchedPlan.id : planId,
+    originalPrice
+  }, settings);
+
+  if (!result.ok) {
+    return res.status(400).json({ ok: false, message: result.message });
+  }
+
+  res.json({
+    ok: true,
+    data: result.coupon
+  });
+});
+
+// ============================================================
 // 3. TẠO ĐƠN HÀNG & MÃ THANH TOÁN VIETQR
 // ============================================================
 app.post('/api/order/create', async (req, res) => {
-  const { username: rawUser, planType, planId } = req.body || {};
+  const { username: rawUser, planType, planId, couponCode } = req.body || {};
   const username = cleanLocketUsername(rawUser);
 
   if (!username) {
@@ -778,11 +963,48 @@ app.post('/api/order/create', async (req, res) => {
   const orderCode = `${memoPrefix}${randNum}`;
   const orderId = `ORD_${Date.now()}_${randNum}`;
 
+  // Kiểm tra & áp dụng mã giảm giá (nếu có)
+  const originalPrice = Number(matchedPlan.price) || 75000;
+  let finalAmount = originalPrice;
+  let appliedCoupon = null;
+
+  if (couponCode && String(couponCode).trim()) {
+    const coupCheck = evaluateCoupon({
+      code: couponCode,
+      planType: type,
+      planId: matchedPlan.id,
+      originalPrice
+    }, settings);
+
+    if (coupCheck.ok && coupCheck.coupon) {
+      finalAmount = coupCheck.coupon.finalPrice;
+      appliedCoupon = {
+        code: coupCheck.coupon.code,
+        name: coupCheck.coupon.name,
+        type: coupCheck.coupon.type,
+        value: coupCheck.coupon.value,
+        discountAmount: coupCheck.coupon.discountAmount,
+        originalAmount: coupCheck.coupon.originalPrice
+      };
+
+      // Tăng số lượt đã sử dụng của coupon
+      if (Array.isArray(settings.coupons)) {
+        const cTarget = settings.coupons.find(c => String(c.code).trim().toUpperCase() === String(couponCode).trim().toUpperCase());
+        if (cTarget) {
+          cTarget.usedCount = (Number(cTarget.usedCount) || 0) + 1;
+          await saveSettings(settings);
+        }
+      }
+    } else {
+      console.warn(`[ORDER_COUPON_REJECTED] Mã "${couponCode}": ${coupCheck.message}`);
+    }
+  }
+
   // VietQR link
   const bankId = bank.bankId || 'VPBANK';
   const accNum = bank.accountNumber || '2027022007';
   const accName = bank.accountName || 'NGUYEN MINH HIEP';
-  const amount = Number(matchedPlan.price) || 75000;
+  const amount = finalAmount;
 
   const qrUrl = `https://img.vietqr.io/image/${bankId}-${accNum}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(orderCode)}&accountName=${encodeURIComponent(accName)}`;
 
@@ -796,6 +1018,8 @@ app.post('/api/order/create', async (req, res) => {
     packageKey: matchedPlan.packageKey || 'filter_1year',
     planName: matchedPlan.name,
     amount: amount,
+    originalAmount: originalPrice,
+    coupon: appliedCoupon,
     status: 'PENDING', // PENDING, PAID, ACTIVATED, FAILED, CANCELLED
     qrUrl: qrUrl,
     bankInfo: {
@@ -868,6 +1092,17 @@ app.post('/api/order/cancel', async (req, res) => {
     order.status = 'CANCELLED';
     order.cancelReason = reason;
     order.cancelledAt = new Date().toISOString();
+    if (order.coupon && order.coupon.code) {
+      const settings = loadSettings();
+      if (Array.isArray(settings.coupons)) {
+        const cTarget = settings.coupons.find(c => String(c.code).trim().toUpperCase() === String(order.coupon.code).trim().toUpperCase());
+        if (cTarget && Number(cTarget.usedCount) > 0) {
+          cTarget.usedCount = Number(cTarget.usedCount) - 1;
+          await saveSettings(settings);
+        }
+      }
+    }
+
     await saveOrders(orders);
     console.log(`[ORDER] ❌ Đã hủy đơn ${orderCode} (@${order.username}) — Lý do: ${reason}`);
     return res.json({ ok: true, message: 'Đã hủy đơn hàng thành công!', order });
@@ -2215,6 +2450,137 @@ app.post('/api/admin/settings', requireAdmin, async (req, res) => {
   }
 
   return res.status(500).json({ ok: false, message: 'Lỗi ghi file cấu hình!' });
+});
+
+// ============================================================
+// ADMIN: QUẢN LÝ MÃ GIẢM GIÁ (COUPONS)
+// ============================================================
+
+// 1. Lấy danh sách mã giảm giá & thống kê
+app.get('/api/admin/coupons', requireAdmin, (req, res) => {
+  const settings = loadSettings();
+  const coupons = settings.coupons || [];
+
+  const totalCoupons = coupons.length;
+  const activeCoupons = coupons.filter(c => c.isActive).length;
+  const totalUsed = coupons.reduce((sum, c) => sum + (Number(c.usedCount) || 0), 0);
+
+  res.json({
+    ok: true,
+    data: {
+      coupons,
+      stats: {
+        totalCoupons,
+        activeCoupons,
+        totalUsed
+      }
+    }
+  });
+});
+
+// 2. Thêm hoặc Sửa mã giảm giá
+app.post('/api/admin/coupons/save', requireAdmin, async (req, res) => {
+  const couponData = req.body || {};
+  const code = String(couponData.code || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+
+  if (!code) {
+    return res.status(400).json({ ok: false, message: 'Vui lòng nhập mã giảm giá (Mã Code)!' });
+  }
+
+  const name = String(couponData.name || '').trim() || `Mã giảm giá ${code}`;
+  const type = couponData.type === 'percent' ? 'percent' : 'fixed';
+  const value = Number(couponData.value) || 0;
+  if (value <= 0) {
+    return res.status(400).json({ ok: false, message: 'Mức giảm giá phải lớn hơn 0!' });
+  }
+  if (type === 'percent' && value > 100) {
+    return res.status(400).json({ ok: false, message: 'Giảm theo phần trăm không được vượt quá 100%!' });
+  }
+
+  const maxDiscount = Number(couponData.maxDiscount) || 0;
+  const minOrder = Number(couponData.minOrder) || 0;
+  const applicablePlans = couponData.applicablePlans || 'all'; // 'all', 'vip', 'regular', or specific planId
+  const usageLimit = Number(couponData.usageLimit) || 0;
+  const startDate = couponData.startDate ? String(couponData.startDate).trim() : '';
+  const endDate = couponData.endDate ? String(couponData.endDate).trim() : '';
+  const isActive = typeof couponData.isActive === 'boolean' ? couponData.isActive : true;
+
+  const settings = loadSettings();
+  if (!Array.isArray(settings.coupons)) settings.coupons = [];
+
+  const id = couponData.id || `coup_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  const existingIdx = settings.coupons.findIndex(c => c.id === id || String(c.code).trim().toUpperCase() === code);
+
+  const newCoupon = {
+    id: (existingIdx > -1) ? settings.coupons[existingIdx].id : id,
+    code,
+    name,
+    type,
+    value,
+    maxDiscount,
+    minOrder,
+    applicablePlans,
+    usageLimit,
+    usedCount: (existingIdx > -1) ? (Number(settings.coupons[existingIdx].usedCount) || 0) : 0,
+    startDate,
+    endDate,
+    isActive,
+    createdAt: (existingIdx > -1) ? (settings.coupons[existingIdx].createdAt || new Date().toISOString()) : new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  if (existingIdx > -1) {
+    settings.coupons[existingIdx] = newCoupon;
+  } else {
+    settings.coupons.unshift(newCoupon);
+  }
+
+  if (await saveSettings(settings)) {
+    console.log(`[ADMIN] ✅ Lưu mã giảm giá: ${code} - ${name} (${type === 'percent' ? value + '%' : value.toLocaleString('vi-VN') + 'đ'})`);
+    return res.json({ ok: true, message: `Đã lưu mã giảm giá "${code}" thành công!`, coupon: newCoupon });
+  }
+
+  res.status(500).json({ ok: false, message: 'Lỗi ghi file dữ liệu!' });
+});
+
+// 3. Bật / Tắt trạng thái mã giảm giá nhanh
+app.post('/api/admin/coupons/toggle', requireAdmin, async (req, res) => {
+  const { id } = req.body || {};
+  if (!id) return res.status(400).json({ ok: false, message: 'Thiếu ID mã giảm giá!' });
+
+  const settings = loadSettings();
+  const coupon = (settings.coupons || []).find(c => c.id === id);
+  if (!coupon) return res.status(404).json({ ok: false, message: 'Không tìm thấy mã giảm giá!' });
+
+  coupon.isActive = !coupon.isActive;
+  coupon.updatedAt = new Date().toISOString();
+
+  if (await saveSettings(settings)) {
+    return res.json({
+      ok: true,
+      message: `Đã ${coupon.isActive ? 'kích hoạt' : 'tạm dừng'} mã "${coupon.code}"!`,
+      isActive: coupon.isActive
+    });
+  }
+
+  res.status(500).json({ ok: false, message: 'Lỗi ghi file dữ liệu!' });
+});
+
+// 4. Xóa mã giảm giá
+app.post('/api/admin/coupons/delete', requireAdmin, async (req, res) => {
+  const { id } = req.body || {};
+  if (!id) return res.status(400).json({ ok: false, message: 'Thiếu ID mã giảm giá!' });
+
+  const settings = loadSettings();
+  const beforeLen = (settings.coupons || []).length;
+  settings.coupons = (settings.coupons || []).filter(c => c.id !== id);
+
+  if (settings.coupons.length < beforeLen) {
+    await saveSettings(settings);
+    return res.json({ ok: true, message: 'Đã xóa mã giảm giá thành công!' });
+  }
+
+  res.status(404).json({ ok: false, message: 'Không tìm thấy mã giảm giá để xóa!' });
 });
 
 // Cập nhật cài đặt chức năng trang khách hàng

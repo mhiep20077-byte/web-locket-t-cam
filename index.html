@@ -404,6 +404,46 @@
           <div id="preview-badge" class="user-status-badge"></div>
         </div>
 
+        <!-- Khối Áp Dụng Mã Giảm Giá (Coupon Block) -->
+        <div class="coupon-box-wrapper" id="coupon-box-wrapper" style="display: none;">
+          <div class="coupon-input-group">
+            <i class="fa-solid fa-ticket coupon-input-icon"></i>
+            <input type="text" id="coupon-code-input" class="coupon-code-input" placeholder="Nhập mã giảm giá (VD: VIPCAM20)..." autocomplete="off" spellcheck="false">
+            <button type="button" id="btn-apply-coupon" class="btn-apply-coupon" onclick="applyCouponCode()">
+              <span>Áp Dụng</span>
+            </button>
+          </div>
+
+          <div id="coupon-alert-msg" class="coupon-alert-msg" style="display: none;"></div>
+
+          <!-- Chi tiết giảm giá khi áp dụng mã thành công -->
+          <div id="coupon-summary-card" class="coupon-summary-card" style="display: none;">
+            <div class="coupon-summary-header">
+              <span class="coupon-applied-badge">
+                <i class="fa-solid fa-circle-check"></i> Đã áp dụng mã: <b id="lbl-coupon-code">VIPCAM20</b>
+              </span>
+              <button type="button" class="btn-remove-coupon" onclick="removeCouponCode()" title="Hủy mã này">
+                <i class="fa-solid fa-xmark"></i> Bỏ mã
+              </button>
+            </div>
+            <div class="coupon-summary-body">
+              <div class="summary-line">
+                <span>Giá gói gốc:</span>
+                <span id="lbl-orig-price" style="text-decoration: line-through; color: #94A3B8;">75.000đ</span>
+              </div>
+              <div class="summary-line discount-text">
+                <span>Số tiền được giảm:</span>
+                <b id="lbl-discount-val" style="color: #34D399;">-20.000đ</b>
+              </div>
+              <div class="summary-divider"></div>
+              <div class="summary-line total-pay">
+                <span>Số tiền cần thanh toán:</span>
+                <b id="lbl-final-price" style="color: var(--gold-primary); font-size: 1.25rem;">55.000đ</b>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div style="text-align: center; margin-top: 24px;">
           <button type="button" id="btn-goto-step2" class="btn-select-plan btn-plan-vip"
             style="display: none; width: 100%; padding: 16px;" onclick="createOrderAndGoToStep2()">
@@ -475,6 +515,10 @@
           <div class="bank-detail-row">
             <span class="label">Số tiền:</span>
             <span class="value" style="color: var(--gold-light); font-size: 1.15rem;" id="pay-amount">75.000đ</span>
+          </div>
+          <div class="bank-detail-row" id="pay-coupon-row" style="display: none;">
+            <span class="label">Mã ưu đãi đã dùng:</span>
+            <span class="value" style="color: #34D399; font-weight: 700;" id="pay-coupon-badge">-0đ</span>
           </div>
           <div class="bank-detail-row">
             <span class="label">Nội dung chuyển khoản (bắt buộc):</span>

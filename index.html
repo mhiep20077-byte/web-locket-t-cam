@@ -431,6 +431,24 @@
           </p>
         </div>
 
+        <!-- Đồng hồ đếm ngược 3 phút hết hạn đơn -->
+        <div class="order-countdown-box" id="order-countdown-box">
+          <div class="countdown-row">
+            <div class="countdown-left">
+              <i class="fa-solid fa-stopwatch" style="color: #F59E0B;"></i>
+              <span>Mã QR thanh toán hết hạn sau:</span>
+            </div>
+            <div class="countdown-digits" id="countdown-timer-text">03:00</div>
+          </div>
+          <div class="countdown-bar-track">
+            <div class="countdown-bar-fill" id="countdown-progress-bar" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <div id="qr-expired-banner" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; text-align: center; color: #FCA5A5; font-size: 13.5px;">
+          <i class="fa-solid fa-triangle-exclamation"></i> <b>Mã QR đã hết hạn sau 3 phút.</b> Vui lòng bấm nút bên dưới để chọn lại gói và tạo mã mới!
+        </div>
+
         <div class="vietqr-box">
           <div class="qr-image-container">
             <img src="" alt="VietQR Napas" id="vietqr-image">

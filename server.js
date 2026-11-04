@@ -134,8 +134,38 @@ function saveSettings(settings) {
   return saveCollection('settings', SETTINGS_FILE, settings, 'SETTINGS');
 }
 
+// Thời gian hiệu lực của đơn hàng chờ thanh toán: đúng 3 phút
+const ORDER_EXPIRATION_MS = 3 * 60 * 1000;
+
+function autoExpirePendingOrders(orders) {
+  if (!Array.isArray(orders)) return false;
+  const now = Date.now();
+  let changed = false;
+
+  for (const o of orders) {
+    if (o && o.status === 'PENDING') {
+      const createdTime = new Date(o.createdAt || Date.now()).getTime();
+      const expiryTime = o.expiresAt ? new Date(o.expiresAt).getTime() : (createdTime + ORDER_EXPIRATION_MS);
+
+      // Quá 3 phút mà chưa thanh toán -> CANCELLED
+      if (now >= expiryTime) {
+        o.status = 'CANCELLED';
+        o.cancelReason = o.cancelReason || 'Đơn hết hạn sau 3 phút chưa thanh toán (tự động đóng)';
+        o.expiredAt = new Date().toISOString();
+        changed = true;
+      }
+    }
+  }
+
+  return changed;
+}
+
 function loadOrders() {
-  return loadCollection('orders', ORDERS_FILE, []);
+  const orders = loadCollection('orders', ORDERS_FILE, []);
+  if (autoExpirePendingOrders(orders)) {
+    saveCollection('orders', ORDERS_FILE, orders, 'ORDERS');
+  }
+  return orders;
 }
 
 function saveOrders(orders) {
@@ -722,10 +752,25 @@ app.post('/api/order/create', async (req, res) => {
     filterShortUrl: null,
     activationLog: null,
     createdAt: new Date().toISOString(),
-    expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString() // Đơn có hiệu lực 30 phút
+    expiresAt: new Date(Date.now() + ORDER_EXPIRATION_MS).toISOString() // Đơn có hiệu lực đúng 3 phút
   };
 
   const orders = loadOrders();
+
+  // Tự động hủy các đơn PENDING cũ của cùng username (tránh treo nhiều đơn rác khi khách đổi gói)
+  let cancelledOldCount = 0;
+  orders.forEach(o => {
+    if (o.status === 'PENDING' && cleanLocketUsername(o.username) === username) {
+      o.status = 'CANCELLED';
+      o.cancelReason = `Khách chuyển sang tạo đơn mới ${orderCode}`;
+      o.cancelledAt = new Date().toISOString();
+      cancelledOldCount++;
+    }
+  });
+  if (cancelledOldCount > 0) {
+    console.log(`[ORDER] Đã tự động hủy ${cancelledOldCount} đơn chờ cũ của @${username} để tạo đơn mới ${orderCode}`);
+  }
+
   orders.unshift(newOrder);
   if (!(await saveOrders(orders.slice(0, 500)))) {
     return res.status(500).json({ ok: false, message: 'Không thể lưu đơn hàng!' });
@@ -739,6 +784,41 @@ app.post('/api/order/create', async (req, res) => {
   });
 });
 
+// Khách hủy đơn hàng (Nhấn X đổi gói hoặc hết hạn)
+app.post('/api/order/cancel', async (req, res) => {
+  let body = req.body || {};
+  if (typeof body === 'string') {
+    try { body = JSON.parse(body); } catch (_) { body = {}; }
+  }
+
+  const rawCode = body.orderCode || body.code || req.query.orderCode || '';
+  const orderCode = String(rawCode).trim().toUpperCase();
+  const reason = (body.reason || 'Khách nhấn X đổi gói / hủy thanh toán').trim();
+
+  if (!orderCode) {
+    return res.status(400).json({ ok: false, message: 'Thiếu mã đơn hàng!' });
+  }
+
+  const orders = loadOrders();
+  const order = orders.find(o => (o.orderCode || '').toUpperCase() === orderCode || o.id === orderCode);
+
+  if (!order) {
+    return res.status(404).json({ ok: false, message: 'Không tìm thấy đơn hàng!' });
+  }
+
+  // Chỉ hủy nếu đơn đang ở trạng thái PENDING
+  if (order.status === 'PENDING') {
+    order.status = 'CANCELLED';
+    order.cancelReason = reason;
+    order.cancelledAt = new Date().toISOString();
+    await saveOrders(orders);
+    console.log(`[ORDER] ❌ Đã hủy đơn ${orderCode} (@${order.username}) — Lý do: ${reason}`);
+    return res.json({ ok: true, message: 'Đã hủy đơn hàng thành công!', order });
+  }
+
+  return res.json({ ok: true, message: 'Đơn hàng không ở trạng thái chờ thanh toán', order });
+});
+
 // Kiểm tra trạng thái đơn hàng (Polling từ frontend)
 app.get('/api/order/check', (req, res) => {
   const orderCode = (req.query.orderCode || req.query.code || '').trim().toUpperCase();
@@ -747,10 +827,22 @@ app.get('/api/order/check', (req, res) => {
   }
 
   const orders = loadOrders();
-  const order = orders.find(o => o.orderCode === orderCode || o.id === orderCode);
+  const order = orders.find(o => (o.orderCode || '').toUpperCase() === orderCode || o.id === orderCode);
 
   if (!order) {
     return res.status(404).json({ ok: false, message: 'Không tìm thấy đơn hàng!' });
+  }
+
+  // Kiểm tra nếu đã quá hạn 3 phút mà chưa thanh toán
+  if (order.status === 'PENDING') {
+    const createdTime = new Date(order.createdAt || Date.now()).getTime();
+    const expiryTime = order.expiresAt ? new Date(order.expiresAt).getTime() : (createdTime + ORDER_EXPIRATION_MS);
+    if (Date.now() >= expiryTime) {
+      order.status = 'CANCELLED';
+      order.cancelReason = 'Đơn hết hạn sau 3 phút chưa thanh toán';
+      order.expiredAt = new Date().toISOString();
+      saveOrders(orders);
+    }
   }
 
   res.json({
@@ -1612,10 +1704,20 @@ app.post('/api/admin/customer-features', requireAdmin, async (req, res) => {
   return res.status(500).json({ ok: false, message: 'Lỗi ghi file cấu hình!' });
 });
 
-// Lấy danh sách đơn hàng cho Admin
+// Lấy danh sách đơn hàng cho Admin (Tự động quét hết hạn 3 phút)
 app.get('/api/admin/orders', requireAdmin, (req, res) => {
   const orders = loadOrders();
   res.json({ ok: true, orders: orders });
+});
+
+// Dọn dẹp toàn bộ đơn đã hủy / hết hạn cho Admin
+app.post('/api/admin/orders/cleanup-cancelled', requireAdmin, async (req, res) => {
+  let orders = loadOrders();
+  const beforeCount = orders.length;
+  orders = orders.filter(o => o.status !== 'CANCELLED');
+  const removedCount = beforeCount - orders.length;
+  await saveOrders(orders);
+  return res.json({ ok: true, message: `Đã dọn dẹp ${removedCount} đơn đã hủy / hết hạn thành công!`, remainingCount: orders.length });
 });
 
 app.post('/api/admin/order/mark-paid', requireAdmin, async (req, res) => {
@@ -2586,6 +2688,13 @@ async function startServer() {
 🔐 Trang Quản Trị Admin: http://localhost:${PORT}/admin
 ============================================================
       `);
+
+      // Quét và tự động đóng các đơn PENDING quá 3 phút theo định kỳ mỗi 30 giây
+      setInterval(() => {
+        try {
+          loadOrders();
+        } catch (_) { }
+      }, 30000);
     });
   } catch (err) {
     console.error('[DATABASE] Không thể khởi động storage:', err.message);

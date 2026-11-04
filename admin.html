@@ -774,10 +774,16 @@
     <div id="tab-orders" class="admin-tab-pane" style="display: none;">
       <div class="page-title">
         <span>Quản Lý Đơn Hàng &amp; Kích Hoạt API</span>
-        <button type="button" class="btn-save" id="btn-reload-orders" style="padding: 8px 16px; font-size: 13px;"
-          onclick="loadOrdersList(true)">
-          <i class="fa-solid fa-rotate" id="icon-reload-orders"></i> Tải Lại Danh Sách
-        </button>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" class="btn-save" style="padding: 8px 16px; font-size: 13px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #F87171;"
+            onclick="cleanupCancelledOrders()" title="Dọn dẹp các đơn đã hủy hoặc hết hạn 3 phút">
+            <i class="fa-solid fa-broom"></i> Dọn Đơn Đã Hủy
+          </button>
+          <button type="button" class="btn-save" id="btn-reload-orders" style="padding: 8px 16px; font-size: 13px;"
+            onclick="loadOrdersList(true)">
+            <i class="fa-solid fa-rotate" id="icon-reload-orders"></i> Tải Lại Danh Sách
+          </button>
+        </div>
       </div>
 
       <div class="panel-card">

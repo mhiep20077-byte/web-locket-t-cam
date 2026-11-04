@@ -1446,6 +1446,38 @@ app.get('/api/frame/gallery', async (req, res) => {
   });
 });
 
+// Endpoint tải file khung ảnh PNG về máy (Attachment download proxy chống lỗi CORS)
+app.get('/api/frame/download', async (req, res) => {
+  const fileUrl = req.query.url;
+  const rawName = req.query.name || 'khung-locket';
+  if (!fileUrl) {
+    return res.status(400).send('Thiếu URL tệp khung cần tải!');
+  }
+
+  const safeName = String(rawName).replace(/[^a-zA-Z0-9_\-\u00C0-\u024F\u1EA0-\u1EF9 ]/g, '').trim().replace(/\s+/g, '-') || 'khung-locket';
+
+  try {
+    const fetchRes = await fetch(fileUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+    });
+    if (!fetchRes.ok) {
+      return res.status(fetchRes.status || 404).send('Không thể tải ảnh từ nguồn');
+    }
+
+    const contentType = fetchRes.headers.get('content-type') || 'image/png';
+    const buffer = Buffer.from(await fetchRes.arrayBuffer());
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(safeName)}.png"`);
+    res.setHeader('Content-Length', buffer.length);
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.end(buffer);
+  } catch (err) {
+    console.warn('[FRAME DOWNLOAD] Lỗi proxy download:', err.message);
+    return res.status(502).send('Lỗi tải tệp: ' + err.message);
+  }
+});
+
 // 2. Tra cứu trạng thái khung hiện tại theo username hoặc UID
 app.get('/api/frame/status', async (req, res) => {
   const rawId = req.query.identifier || req.query.id || req.query.username || '';
@@ -1512,8 +1544,8 @@ app.get('/api/frame/status', async (req, res) => {
       // 3. Fallback qua danh sách CTV Customers
       if (!data.data.avatarUrl) {
         const ctvCusts = loadCtvCustomers();
-        const foundCust = ctvCusts.find(c => 
-          (c.username && cleanLocketUsername(c.username) === identifier.toLowerCase()) || 
+        const foundCust = ctvCusts.find(c =>
+          (c.username && cleanLocketUsername(c.username) === identifier.toLowerCase()) ||
           (c.uid && c.uid.toLowerCase() === resolvedUid.toLowerCase())
         );
         if (foundCust) {
@@ -1638,7 +1670,7 @@ app.post('/api/frame/remove', async (req, res) => {
 app.get('/api/admin/frames/data', requireAdmin, async (req, res) => {
   const settings = loadSettings();
   const apiKey = settings.apiConfig?.frameApiKey || settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
-  
+
   let gallery = [];
   let apiStatus = 'ONLINE';
   let apiError = null;
@@ -2645,8 +2677,8 @@ app.get('/api/ctv/dns-lookup', requireCtv, async (req, res) => {
 
   // 3. Tra trong danh sách đơn hàng & khách hàng CTV đã lưu
   const customers = loadCtvCustomers();
-  const foundCust = customers.find(c => 
-    (c.username && cleanLocketUsername(c.username) === cleanId) || 
+  const foundCust = customers.find(c =>
+    (c.username && cleanLocketUsername(c.username) === cleanId) ||
     (c.uid && c.uid.toLowerCase() === cleanId.toLowerCase())
   );
   if (foundCust) {

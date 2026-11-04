@@ -276,6 +276,30 @@
       background: rgba(245, 158, 11, 0.08);
     }
 
+    .frame-item-card.is-kawaii-card {
+      border-color: rgba(245, 158, 11, 0.45);
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.1) 0%, rgba(15, 23, 42, 0.7) 100%);
+    }
+
+    .badge-vip-tag {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      background: linear-gradient(135deg, #F59E0B 0%, #EC4899 100%);
+      color: #FFFFFF;
+      font-size: 9.5px;
+      font-weight: 900;
+      padding: 2px 7px;
+      border-radius: 999px;
+      z-index: 3;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      pointer-events: none;
+      letter-spacing: 0.3px;
+    }
+
     .frame-thumb-box {
       width: 100%;
       aspect-ratio: 1;
@@ -863,12 +887,6 @@
       </ul>
 
       <div class="nav-actions">
-        <a href="ctv.html" class="btn-chip"
-          style="background: rgba(37, 99, 235, 0.1); border-color: rgba(37, 99, 235, 0.35); color: #38BDF8; font-weight: 800;"
-          title="Dành cho CTV &amp; Đại lý">
-          <i class="fa-solid fa-handshake"></i>
-          <span>Cổng CTV</span>
-        </a>
         <a href="https://zalo.me/g/shprtxgdepc6wscxwmtg" target="_blank" rel="noopener noreferrer"
           class="btn-chip chip-zalo"
           style="background: linear-gradient(135deg, rgba(0, 104, 255, 0.15), rgba(37, 99, 235, 0.25)); border-color: rgba(0, 104, 255, 0.45); color: #0068FF; font-weight: 800;"
@@ -945,6 +963,9 @@
           <div class="frame-tabs">
             <button type="button" class="frame-tab-btn active" id="tab-all-frames" onclick="switchGalleryTab('all')">
               Tất cả mẫu
+            </button>
+            <button type="button" class="frame-tab-btn" id="tab-vip-frames" onclick="switchGalleryTab('vip')">
+              👑 7 Khung Kawaii Mới
             </button>
             <button type="button" class="frame-tab-btn" id="tab-fav-frames" onclick="switchGalleryTab('fav')">
               ⭐ Yêu thích (<span id="fav-count">0</span>)

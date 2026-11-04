@@ -126,8 +126,65 @@ const activeCtvTokens = new Map(); // token -> ctvUsername
 // ============================================================
 // DATA STORAGE HELPERS
 // ============================================================
+// 7 Mẫu Khung Kawaii Mới Trích Xuất Từ PDF
+const DEFAULT_KAWAII_FRAMES = [
+  {
+    id: 'frame_kawaii_01',
+    name: 'Bé Mèo, Gấu Nâu, Panda & Cầu Vồng Pastel 🎀',
+    url: '/images/frames_kawaii/frame_kawaii_01_trans.png',
+    isVip: true,
+    createdAt: '2026-11-05T01:20:00.000Z'
+  },
+  {
+    id: 'frame_kawaii_02',
+    name: 'Thỏ Con, Gấu Nâu Nơ Xanh & Trà Sữa 🧸',
+    url: '/images/frames_kawaii/frame_kawaii_02_trans.png',
+    isVip: true,
+    createdAt: '2026-11-05T01:20:01.000Z'
+  },
+  {
+    id: 'frame_kawaii_03',
+    name: 'Shin-chan & Siêu Nhân Hành Động Action Mask 🦸',
+    url: '/images/frames_kawaii/frame_kawaii_03_trans.png',
+    isVip: true,
+    createdAt: '2026-11-05T01:20:02.000Z'
+  },
+  {
+    id: 'frame_kawaii_04',
+    name: 'Hoa Anh Đào Sakura, Thỏ & Mèo Cổng Torii 🌸',
+    url: '/images/frames_kawaii/frame_kawaii_04_trans.png',
+    isVip: true,
+    createdAt: '2026-11-05T01:20:03.000Z'
+  },
+  {
+    id: 'frame_kawaii_05',
+    name: 'Shin-chan Ngày Nghỉ & Khủng Long Xanh 💤',
+    url: '/images/frames_kawaii/frame_kawaii_05_trans.png',
+    isVip: true,
+    createdAt: '2026-11-05T01:20:04.000Z'
+  },
+  {
+    id: 'frame_kawaii_06',
+    name: 'Thế Giới Kawaii Giấc Mơ Xanh Thỏ & Gấu ☁️',
+    url: '/images/frames_kawaii/frame_kawaii_06_trans.png',
+    isVip: true,
+    createdAt: '2026-11-05T01:20:05.000Z'
+  },
+  {
+    id: 'frame_kawaii_07',
+    name: 'Cún Corgi, Panda & Bé Khủng Long Nơ Hồng 🐶',
+    url: '/images/frames_kawaii/frame_kawaii_07_trans.png',
+    isVip: true,
+    createdAt: '2026-11-05T01:20:06.000Z'
+  }
+];
+
 function loadSettings() {
-  return loadCollection('settings', SETTINGS_FILE, {}, SETTINGS_EXAMPLE_FILE);
+  const settings = loadCollection('settings', SETTINGS_FILE, {}, SETTINGS_EXAMPLE_FILE);
+  if (!Array.isArray(settings.customFrames) || settings.customFrames.length === 0) {
+    settings.customFrames = [...DEFAULT_KAWAII_FRAMES];
+  }
+  return settings;
 }
 
 function saveSettings(settings) {
@@ -1462,6 +1519,20 @@ app.get('/api/frame/download', async (req, res) => {
 
   const safeName = String(rawName).replace(/[^a-zA-Z0-9_\-\u00C0-\u024F\u1EA0-\u1EF9 ]/g, '').trim().replace(/\s+/g, '-') || 'khung-locket';
 
+  // Hỗ trợ tải trực tiếp tệp ảnh nội bộ trên máy chủ (/images/...)
+  if (fileUrl.startsWith('/images/') || fileUrl.startsWith('images/')) {
+    const localRel = fileUrl.replace(/^\//, '');
+    const localAbs = path.join(ROOT_DIR, localRel);
+    if (fs.existsSync(localAbs)) {
+      const buffer = fs.readFileSync(localAbs);
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(safeName)}.png"`);
+      res.setHeader('Content-Length', buffer.length);
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      return res.end(buffer);
+    }
+  }
+
   try {
     const fetchRes = await fetch(fileUrl, {
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
@@ -1601,6 +1672,19 @@ app.post('/api/frame/set', async (req, res) => {
     if (image) payload.image = image;
     if (frameUrl) payload.frameUrl = frameUrl;
     if (mime) payload.mime = mime;
+
+    // Tự động chuyển đổi ảnh local thành base64 nếu frameUrl là đường dẫn nội bộ máy chủ
+    if (payload.frameUrl && !payload.image) {
+      if (payload.frameUrl.startsWith('/images/') || payload.frameUrl.startsWith('images/')) {
+        const localRel = payload.frameUrl.replace(/^\//, '');
+        const localAbs = path.join(ROOT_DIR, localRel);
+        if (fs.existsSync(localAbs)) {
+          const buf = fs.readFileSync(localAbs);
+          payload.image = `data:image/png;base64,${buf.toString('base64')}`;
+          delete payload.frameUrl;
+        }
+      }
+    }
 
     const resp = await fetch('https://khunganh.nodns.vn/api/v1/frame', {
       method: 'POST',
@@ -1878,6 +1962,19 @@ app.post('/api/admin/frames/user-action', requireAdmin, async (req, res) => {
       };
       if (image) payload.image = image;
       if (frameUrl) payload.frameUrl = frameUrl;
+
+      // Tự động chuyển đổi ảnh local thành base64 nếu frameUrl là đường dẫn nội bộ máy chủ
+      if (payload.frameUrl && !payload.image) {
+        if (payload.frameUrl.startsWith('/images/') || payload.frameUrl.startsWith('images/')) {
+          const localRel = payload.frameUrl.replace(/^\//, '');
+          const localAbs = path.join(ROOT_DIR, localRel);
+          if (fs.existsSync(localAbs)) {
+            const buf = fs.readFileSync(localAbs);
+            payload.image = `data:image/png;base64,${buf.toString('base64')}`;
+            delete payload.frameUrl;
+          }
+        }
+      }
 
       const resp = await fetch('https://khunganh.nodns.vn/api/v1/frame', {
         method: 'POST',

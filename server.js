@@ -1436,6 +1436,12 @@ app.get('/api/frame/gallery', async (req, res) => {
     frames = [...mapped, ...frames];
   }
 
+  // Lọc bỏ các mẫu khung Admin đã ẩn / xóa khỏi hệ thống
+  const hiddenFrames = Array.isArray(settings.hiddenFrames) ? settings.hiddenFrames : [];
+  if (hiddenFrames.length > 0) {
+    frames = frames.filter(f => f.url && !hiddenFrames.includes(f.url));
+  }
+
   return res.json({
     status: 'success',
     data: {
@@ -1700,6 +1706,7 @@ app.get('/api/admin/frames/data', requireAdmin, async (req, res) => {
   };
 
   const customFrames = settings.customFrames || [];
+  const hiddenFrames = settings.hiddenFrames || [];
   const logs = settings.frameLogs || [];
 
   return res.json({
@@ -1711,6 +1718,7 @@ app.get('/api/admin/frames/data', requireAdmin, async (req, res) => {
       fullApiKey: apiKey,
       frameSettings,
       customFrames,
+      hiddenFrames,
       gallery,
       totalFramesCount: gallery.length + customFrames.length,
       logs
@@ -1773,28 +1781,78 @@ app.post('/api/admin/frames/gallery/add', requireAdmin, async (req, res) => {
   return res.status(500).json({ ok: false, message: 'Lỗi lưu mẫu khung!' });
 });
 
-// 5.4. Xóa mẫu khung riêng khỏi kho
+// 5.4. Xóa / Ẩn mẫu khung khỏi kho (Hỗ trợ xóa khung riêng Shop và ẩn khung cộng đồng)
 app.post('/api/admin/frames/gallery/delete', requireAdmin, async (req, res) => {
-  const { id } = req.body || {};
-  if (!id) return res.status(400).json({ ok: false, message: 'Thiếu ID mẫu khung cần xóa!' });
+  const { id, url, name } = req.body || {};
+  if (!id && !url) return res.status(400).json({ ok: false, message: 'Thiếu ID hoặc URL mẫu khung cần xóa!' });
 
   const settings = loadSettings();
   if (!Array.isArray(settings.customFrames)) settings.customFrames = [];
+  if (!Array.isArray(settings.hiddenFrames)) settings.hiddenFrames = [];
 
-  const initialLen = settings.customFrames.length;
-  settings.customFrames = settings.customFrames.filter(f => f.id !== id);
+  let deleted = false;
+  let frameName = name || 'Khung Widget';
 
-  if (settings.customFrames.length !== initialLen) {
+  // 1. Nếu có ID hoặc URL trùng với khung riêng Shop
+  if (id) {
+    const found = settings.customFrames.find(f => f.id === id);
+    if (found) frameName = found.name;
+    const initialLen = settings.customFrames.length;
+    settings.customFrames = settings.customFrames.filter(f => f.id !== id);
+    if (settings.customFrames.length !== initialLen) {
+      deleted = true;
+    }
+  }
+
+  // 2. Nếu có URL (Xóa khỏi customFrames và đưa vào hiddenFrames để ẩn vĩnh viễn khỏi trang khách)
+  if (url) {
+    const initialLenCustom = settings.customFrames.length;
+    settings.customFrames = settings.customFrames.filter(f => f.url !== url);
+    if (settings.customFrames.length !== initialLenCustom) {
+      deleted = true;
+    }
+
+    if (!settings.hiddenFrames.includes(url)) {
+      settings.hiddenFrames.push(url);
+      deleted = true;
+    }
+  }
+
+  if (deleted) {
     await saveSettings(settings);
     addFrameLog({
       action: 'ADMIN_DELETE_FRAME',
-      details: `Xóa mẫu khung ID: ${id}`,
+      details: `Xóa mẫu khung: ${frameName}`,
       actor: 'Admin',
       status: 'SUCCESS'
     });
-    return res.json({ ok: true, message: 'Đã xóa mẫu khung khỏi kho!' });
+    return res.json({ ok: true, message: `Đã xóa mẫu khung "${frameName}" khỏi hệ thống thành công!` });
   }
   return res.status(404).json({ ok: false, message: 'Không tìm thấy mẫu khung cần xóa!' });
+});
+
+// 5.4.1. Khôi phục hiển thị mẫu khung đã xóa / ẩn
+app.post('/api/admin/frames/gallery/restore', requireAdmin, async (req, res) => {
+  const { url, name } = req.body || {};
+  if (!url) return res.status(400).json({ ok: false, message: 'Thiếu URL mẫu khung cần khôi phục!' });
+
+  const settings = loadSettings();
+  if (!Array.isArray(settings.hiddenFrames)) settings.hiddenFrames = [];
+
+  const initialLen = settings.hiddenFrames.length;
+  settings.hiddenFrames = settings.hiddenFrames.filter(u => u !== url);
+
+  if (settings.hiddenFrames.length !== initialLen) {
+    await saveSettings(settings);
+    addFrameLog({
+      action: 'ADMIN_RESTORE_FRAME',
+      details: `Khôi phục mẫu khung: ${name || url}`,
+      actor: 'Admin',
+      status: 'SUCCESS'
+    });
+    return res.json({ ok: true, message: `Đã khôi phục hiển thị mẫu khung thành công!` });
+  }
+  return res.status(404).json({ ok: false, message: 'Mẫu khung không nằm trong danh sách đã xóa / ẩn!' });
 });
 
 // 5.5. Admin thao tác trực tiếp lên tài khoản khách (Gán khung / Gỡ khung)

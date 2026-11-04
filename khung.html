@@ -663,97 +663,6 @@
       font-size: 11.5px;
       word-break: break-all;
     }
-
-    /* Username Hint Box & Primary Check Button (Đồng bộ chuẩn giao diện Locket) */
-    .frame-username-hint-box {
-      background: rgba(0, 0, 0, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 14px;
-      padding: 10px 14px;
-      margin-bottom: 14px;
-      font-size: 12px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-    }
-
-    .frame-username-hint-box .hint-title {
-      font-weight: 800;
-      color: #FDE68A;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 6px;
-      font-size: 12px;
-    }
-
-    .frame-username-hint-box .hint-example {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px dashed rgba(245, 158, 11, 0.35);
-      border-radius: 8px;
-      padding: 6px 10px;
-      margin-bottom: 6px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .frame-username-hint-box .hint-example:hover {
-      background: rgba(245, 158, 11, 0.12);
-      border-color: #F59E0B;
-    }
-
-    .frame-username-hint-box .badge-try-sample {
-      margin-left: auto;
-      background: rgba(245, 158, 11, 0.2);
-      border: 1px solid rgba(245, 158, 11, 0.4);
-      color: #FDE68A;
-      font-size: 10.5px;
-      font-weight: 800;
-      padding: 2px 8px;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .frame-username-hint-box .hint-note {
-      color: #94A3B8;
-      font-size: 11px;
-      line-height: 1.45;
-    }
-
-    .frame-username-hint-box .hint-note code {
-      background: rgba(0, 0, 0, 0.4);
-      padding: 1px 5px;
-      border-radius: 4px;
-      color: #FDE68A;
-      font-family: monospace;
-    }
-
-    .btn-check-primary {
-      background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%);
-      color: #FFFFFF;
-      font-weight: 800;
-      font-size: 13px;
-      border: none;
-      border-radius: 12px;
-      padding: 0 20px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      white-space: nowrap;
-      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
-      transition: all 0.2s ease;
-    }
-
-    .btn-check-primary:hover {
-      background: linear-gradient(135deg, #0369A1 0%, #1D4ED8 100%);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
-    }
   </style>
 </head>
 
@@ -945,37 +854,17 @@
             <label style="display: block; font-size: 12.5px; font-weight: 800; color: #CBD5E1; margin-bottom: 6px;">
               Username / UID Locket của bạn:
             </label>
-            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-              <div style="position: relative; flex: 1;">
-                <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #64748B; font-weight: 800; font-size: 15px; pointer-events: none;">@</span>
-                <input type="text" id="target-identifier-input" class="frame-input"
-                  placeholder="ví dụ: tainguyen2408 (hoặc dán link profile)..." autocomplete="off" spellcheck="false"
-                  style="width: 100%; padding-left: 32px;">
-              </div>
-              <button type="button" class="btn-check-primary" id="btn-check-frame"
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+              <input type="text" id="target-identifier-input" class="frame-input"
+                placeholder="ví dụ: tainguyen2408 (hoặc dán link profile)..." autocomplete="off" spellcheck="false">
+              <button type="button" class="frame-btn-tool" id="btn-check-frame"
+                style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.35); color: #38BDF8;"
                 onclick="checkCurrentFrameStatus()">
-                <i class="fa-solid fa-magnifying-glass"></i> Kiểm Tra
+                <i class="fa-solid fa-magnifying-glass"></i> Kiểm tra
               </button>
             </div>
 
-            <!-- Hướng dẫn lấy username chuẩn như trang thanh toán -->
-            <div class="frame-username-hint-box">
-              <div class="hint-title">
-                <i class="fa-solid fa-circle-info" style="color: #F59E0B;"></i>
-                <span>Cách lấy Username từ link chia sẻ profile Locket:</span>
-              </div>
-              <div class="hint-example" onclick="fillFrameSampleUser('tainguyen2408')" title="Nhấn để thử ngay tài khoản mẫu tainguyen2408">
-                <span style="color: #94A3B8;">https://locket.cam/</span><span style="color: #FDE68A; font-weight: 800;">tainguyen2408</span>
-                <i class="fa-solid fa-arrow-right" style="color: #10B981; font-size: 11px;"></i>
-                <span>Username là: <b style="color: #FDE68A;">tainguyen2408</b></span>
-                <span class="badge-try-sample"><i class="fa-solid fa-wand-magic-sparkles"></i> Thử mẫu</span>
-              </div>
-              <div class="hint-note">
-                👉 <b>Các chữ sau dấu / ở cuối</b> chính là Username của bạn (bạn có thể dán thẳng cả link <code>https://locket.cam/...</code> vào ô trên).
-              </div>
-            </div>
-
-            <!-- Profile Card Preview (Hiển thị avatar, tên thật & trạng thái chuẩn xác 100% như ảnh 2/ảnh 3) -->
+            <!-- Profile Card Preview (Hiển thị avatar, tên thật & trạng thái như ảnh 2) -->
             <div class="frame-profile-card" id="frame-user-card" style="display: none;">
               <div class="frame-profile-top">
                 <img src="" alt="Avatar" class="frame-profile-avatar" id="frame-user-avatar">
@@ -989,9 +878,6 @@
                 </div>
               </div>
               <div class="frame-profile-details" id="frame-user-details">
-                <div style="font-size: 11px; font-weight: 800; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-                  <i class="fa-solid fa-id-card" style="color: #10B981;"></i> Thông tin tài khoản:
-                </div>
                 <div class="frame-profile-detail-row">
                   <span class="label">• UID Locket:</span>
                   <code id="frame-detail-uid">---</code>

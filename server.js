@@ -446,6 +446,10 @@ app.get(['/ctv', '/ctv.html'], (req, res) => {
   res.sendFile(path.join(ROOT_DIR, 'ctv.html'));
 });
 
+app.get(['/khung', '/khung.html', '/khung-anh', '/khung-anh.html', '/widget', '/khung-widget'], (req, res) => {
+  res.sendFile(path.join(ROOT_DIR, 'khung.html'));
+});
+
 // Admin Auth Middleware (Xác thực API tuyệt đối, xóa bỏ hoàn toàn lỗ hổng token rác)
 async function requireAdmin(req, res, next) {
   const token = extractAdminToken(req);
@@ -1286,6 +1290,122 @@ app.all([
 });
 
 // ============================================================
+// KHUNG ẢNH WIDGET LOCKET API (TÍCH HỢP https://khunganh.nodns.vn)
+// ============================================================
+
+// 1. Gallery khung ảnh cộng đồng
+app.get('/api/frame/gallery', async (req, res) => {
+  const settings = loadSettings();
+  const apiKey = settings.apiConfig?.frameApiKey || settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
+  try {
+    const resp = await fetch('https://khunganh.nodns.vn/api/v1/frame/gallery', {
+      headers: { 'x-api-key': apiKey }
+    });
+    const data = await resp.json().catch(() => null);
+    if (!resp.ok || !data) {
+      return res.status(resp.status || 500).json({ status: 'error', message: data?.message || 'Không thể tải gallery khung ảnh' });
+    }
+    return res.json(data);
+  } catch (e) {
+    return res.status(502).json({ status: 'error', message: 'Lỗi kết nối máy chủ khung ảnh: ' + e.message });
+  }
+});
+
+// 2. Tra cứu trạng thái khung hiện tại theo username hoặc UID
+app.get('/api/frame/status', async (req, res) => {
+  const rawId = req.query.identifier || req.query.id || req.query.username || '';
+  const identifier = cleanLocketUsername(rawId);
+  if (!identifier) {
+    return res.status(400).json({ status: 'error', message: 'Vui lòng cung cấp username hoặc UID Locket!' });
+  }
+
+  const settings = loadSettings();
+  const apiKey = settings.apiConfig?.frameApiKey || settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
+  try {
+    const resp = await fetch(`https://khunganh.nodns.vn/api/v1/frame?identifier=${encodeURIComponent(identifier)}`, {
+      headers: { 'x-api-key': apiKey }
+    });
+    const data = await resp.json().catch(() => null);
+    if (!resp.ok || !data) {
+      return res.status(resp.status || 500).json({ status: 'error', message: data?.message || 'Không tìm thấy thông tin khung' });
+    }
+    return res.json(data);
+  } catch (e) {
+    return res.status(502).json({ status: 'error', message: 'Lỗi kết nối kiểm tra khung: ' + e.message });
+  }
+});
+
+// 3. Áp dụng / Đổi khung cho tài khoản Locket
+app.post('/api/frame/set', async (req, res) => {
+  const { identifier: rawId, image, frameUrl, name, share, mime } = req.body || {};
+  const identifier = cleanLocketUsername(rawId || '');
+  if (!identifier) {
+    return res.status(400).json({ status: 'error', message: 'Vui lòng cung cấp username hoặc UID Locket!' });
+  }
+  if (!image && !frameUrl) {
+    return res.status(400).json({ status: 'error', message: 'Vui lòng chọn khung từ gallery hoặc tải ảnh khung PNG lên!' });
+  }
+
+  const settings = loadSettings();
+  const apiKey = settings.apiConfig?.frameApiKey || settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
+  try {
+    const payload = {
+      identifier: identifier,
+      name: (name || '').trim().slice(0, 40) || undefined,
+      share: !!share
+    };
+    if (image) payload.image = image;
+    if (frameUrl) payload.frameUrl = frameUrl;
+    if (mime) payload.mime = mime;
+
+    const resp = await fetch('https://khunganh.nodns.vn/api/v1/frame', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await resp.json().catch(() => null);
+    if (!resp.ok || !data) {
+      return res.status(resp.status || 500).json({ status: 'error', message: data?.message || 'Đổi khung thất bại!' });
+    }
+    return res.json(data);
+  } catch (e) {
+    return res.status(502).json({ status: 'error', message: 'Lỗi kết nối máy chủ đổi khung: ' + e.message });
+  }
+});
+
+// 4. Gỡ khung về mặc định
+app.post('/api/frame/remove', async (req, res) => {
+  const { identifier: rawId } = req.body || {};
+  const identifier = cleanLocketUsername(rawId || req.query.identifier || '');
+  if (!identifier) {
+    return res.status(400).json({ status: 'error', message: 'Vui lòng cung cấp username hoặc UID Locket!' });
+  }
+
+  const settings = loadSettings();
+  const apiKey = settings.apiConfig?.frameApiKey || settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
+  try {
+    const resp = await fetch('https://khunganh.nodns.vn/api/v1/frame', {
+      method: 'DELETE',
+      headers: {
+        'x-api-key': apiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ identifier: identifier })
+    });
+    const data = await resp.json().catch(() => null);
+    if (!resp.ok || !data) {
+      return res.status(resp.status || 500).json({ status: 'error', message: data?.message || 'Gỡ khung thất bại!' });
+    }
+    return res.json(data);
+  } catch (e) {
+    return res.status(502).json({ status: 'error', message: 'Lỗi kết nối gỡ khung: ' + e.message });
+  }
+});
+
+// ============================================================
 // 6. ADMIN API (BẢO VỆ MẬT KHẨU & PHIÊN LÀM VIỆC CAO CẤP)
 // ============================================================
 
@@ -1875,8 +1995,8 @@ app.get('/api/ctv/me', requireCtv, (req, res) => {
 app.post('/api/ctv/deposit/create', requireCtv, async (req, res) => {
   const { amount } = req.body || {};
   const numAmount = parseInt(amount, 10);
-  if (!numAmount || numAmount < 50000) {
-    return res.status(400).json({ ok: false, message: 'Số tiền nạp tối thiểu là 50.000đ (50k)!' });
+  if (!numAmount || numAmount < 60000) {
+    return res.status(400).json({ ok: false, message: 'Số tiền nạp tối thiểu là 60.000đ (60k)!' });
   }
 
   const settings = loadSettings();
@@ -2006,6 +2126,130 @@ app.get('/api/ctv/lookup-user', requireCtv, async (req, res) => {
   return res.status(404).json({
     ok: false,
     message: `Không tìm thấy tài khoản Locket @${username}! Vui lòng kiểm tra lại username.`
+  });
+});
+
+// 5b. Tra cứu DNS & Cấu hình toàn diện cho CTV (Hỗ trợ tra DNS, profile link, khung widget, tin nhắn mẫu)
+app.get('/api/ctv/dns-lookup', requireCtv, async (req, res) => {
+  const rawQuery = req.query.query || req.query.username || req.query.uid || '';
+  const cleanId = cleanLocketUsername(rawQuery);
+  if (!cleanId) {
+    return res.status(400).json({ ok: false, message: 'Vui lòng nhập Username hoặc UID Locket của khách!' });
+  }
+
+  const settings = loadSettings();
+  const kawaiiKey = settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
+  const cucamKey = settings.apiConfig?.cucamApiKey || '';
+  const cucamBase = settings.apiConfig?.cucamApiBase || 'https://locket.2707226.xyz';
+
+  let resolvedUid = '';
+  let resolvedUser = cleanId;
+  let fullName = cleanId;
+  let avatarUrl = null;
+  let hasGold = false;
+  let goldExpiry = null;
+  let source = 'unknown';
+
+  // 1. Kiểm tra nếu là UID 28 ký tự hoặc tra qua Kawaii
+  try {
+    const ctvUrl = `https://ctv.nodns.vn/api/v1/userinfo?user=${encodeURIComponent(cleanId)}`;
+    const ctvRes = await fetch(ctvUrl, { headers: { 'x-api-key': kawaiiKey } });
+    const ctvData = await ctvRes.json().catch(() => null);
+    if (ctvRes.ok && ctvData && (ctvData.status === 'success' || ctvData.uid)) {
+      resolvedUid = ctvData.uid || '';
+      resolvedUser = ctvData.username || cleanId;
+      fullName = ctvData.full_name || resolvedUser;
+      avatarUrl = ctvData.profile_picture_url || null;
+      hasGold = ctvData.gold?.has_gold || false;
+      goldExpiry = ctvData.gold?.expiry_date || null;
+      source = 'KAWAII';
+    }
+  } catch (e) { }
+
+  // 2. Tra qua Cụ Cam nếu chưa có UID
+  if (!resolvedUid && cucamKey) {
+    try {
+      const ccRes = await fetch(`${cucamBase}/api/uid/check?username=${encodeURIComponent(cleanId)}`, {
+        headers: { 'Authorization': `Bearer ${cucamKey}` }
+      });
+      const ccData = await ccRes.json().catch(() => null);
+      if (ccRes.ok && ccData?.data?.uid) {
+        resolvedUid = typeof ccData.data.uid === 'string' ? ccData.data.uid : ccData.data.uid.uidString;
+        resolvedUser = ccData.data.username || cleanId;
+        fullName = ccData.data.username || cleanId;
+        avatarUrl = ccData.data.avatarUrl || null;
+        hasGold = ccData.data.active || false;
+        goldExpiry = ccData.data.expiresAt || null;
+        source = 'CUCAM';
+      }
+    } catch (e) { }
+  }
+
+  // 3. Tra trong danh sách đơn hàng & khách hàng CTV đã lưu
+  const customers = loadCtvCustomers();
+  const foundCust = customers.find(c => 
+    (c.username && cleanLocketUsername(c.username) === cleanId) || 
+    (c.uid && c.uid.toLowerCase() === cleanId.toLowerCase())
+  );
+  if (foundCust) {
+    if (!resolvedUid && foundCust.uid) resolvedUid = foundCust.uid;
+    if (foundCust.avatarUrl && !avatarUrl) avatarUrl = foundCust.avatarUrl;
+    if (foundCust.fullName && fullName === cleanId) fullName = foundCust.fullName;
+    if (foundCust.active) hasGold = true;
+    if (foundCust.expiresAt) goldExpiry = foundCust.expiresAt;
+  }
+
+  // 4. Tra trạng thái khung ảnh widget
+  let frameInfo = null;
+  try {
+    const frameResp = await fetch(`https://khunganh.nodns.vn/api/v1/frame?identifier=${encodeURIComponent(resolvedUid || resolvedUser)}`, {
+      headers: { 'x-api-key': kawaiiKey }
+    });
+    const fData = await frameResp.json().catch(() => null);
+    if (fData && fData.status === 'success' && fData.data) {
+      frameInfo = fData.data;
+      if (!resolvedUid && fData.data.uid) resolvedUid = fData.data.uid;
+    }
+  } catch (e) { }
+
+  const regularDnsUrl = settings.dnsLinkRegular || 'https://locket.2707226.xyz/dns';
+  const regularProfileUrl = resolvedUid ? `${cucamBase}/api/profile?uid=${encodeURIComponent(resolvedUid)}` : regularDnsUrl;
+  const vipDnsUrl = settings.dnsLinkVip || 'https://ctv.nodns.vn/cai-dns';
+  const customProfileUrl = foundCust?.mobileconfigUrl || '';
+
+  // Tin nhắn mẫu hướng dẫn chuẩn 4 bước gửi khách
+  const messageTemplate = `👑 HƯỚNG DẪN CÀI ĐẶT LOCKET CHO BẠN:
+👤 Tài khoản: @${resolvedUser}${resolvedUid ? ` (UID: ${resolvedUid})` : ''}
+⚡ Trạng thái: ${hasGold ? '✅ Đã kích hoạt' : '⏳ Cần tải DNS cấu hình'}
+🌐 Link tải cấu hình DNS (Mở trực tiếp trên Safari iPhone):
+${regularProfileUrl}
+
+📋 4 BƯỚC CÀI ĐẶT TRÊN SAFARI (BẮT BUỘC):
+1. Dán link trên vào Safari -> Bấm 'Cho phép' khi hỏi tải tệp cấu hình.
+2. Vào Cài đặt -> Cài đặt chung -> Quản lý VPN & Thiết bị -> Chọn LocketGold -> Bấm Cài đặt -> Nhập mật khẩu iPhone -> Xác nhận.
+3. Vào Cài đặt chung -> Giới thiệu -> Cài đặt tin cậy chứng chỉ -> BẬT CÔNG TẮC LocketGold -> Chọn Tiếp tục.
+4. Tắt hẳn app Locket (vuốt tắt trong đa nhiệm) rồi mở lại -> Vào Hồ sơ thấy huy hiệu Gold là thành công!`;
+
+  return res.json({
+    ok: true,
+    data: {
+      username: resolvedUser,
+      uid: resolvedUid,
+      fullName: fullName,
+      avatarUrl: avatarUrl,
+      hasGold: hasGold,
+      goldExpiry: goldExpiry,
+      source: source,
+      dnsLinks: {
+        regularDns: regularDnsUrl,
+        regularProfile: regularProfileUrl,
+        vipDns: vipDnsUrl,
+        customProfile: customProfileUrl,
+        spotifyDns: 'http://103.101.161.228:8082/spotify-mitm.mobileconfig'
+      },
+      frame: frameInfo,
+      messageTemplate: messageTemplate
+    }
   });
 });
 

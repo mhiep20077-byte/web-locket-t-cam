@@ -5,7 +5,7 @@ const JavaScriptObfuscator = require('javascript-obfuscator');
 const srcDir = path.join(__dirname, 'js_src');
 const distDir = path.join(__dirname, 'js');
 
-const files = ['security-shield.js', 'main.js', 'ctv.js', 'admin.js'];
+const files = ['security-shield.js', 'main.js', 'ctv.js', 'admin.js', 'khung.js'];
 
 console.log('🔒 Đang tiến hành mã hóa và bảo vệ toàn bộ mã nguồn JavaScript...');
 

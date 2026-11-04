@@ -1696,7 +1696,7 @@ body {
   .top-nav {
     border-radius: var(--radius-lg);
     padding: 8px 12px;
-    margin: 8px auto 18px auto;
+    margin: 8px auto 14px auto;
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 8px;
@@ -1732,12 +1732,27 @@ body {
   }
 
   .hero-title {
-    font-size: 1.85rem;
+    font-size: clamp(1.7rem, 6.2vw, 2.2rem) !important;
+    line-height: 1.3 !important;
+    letter-spacing: -0.5px;
+  }
+
+  .hero-subtitle {
+    font-size: 13.5px !important;
+    line-height: 1.6 !important;
+    padding: 0 4px;
+  }
+
+  .pill-announcement {
+    font-size: 11px !important;
+    padding: 6px 12px !important;
+    letter-spacing: 0.3px;
+    line-height: 1.4;
   }
 
   .switch-btn {
-    padding: 10px 14px;
-    font-size: 0.85rem;
+    padding: 10px 10px;
+    font-size: 0.82rem;
     flex: 1;
     text-align: center;
     justify-content: center;
@@ -1746,6 +1761,7 @@ body {
   .mode-switch-container {
     width: 100%;
     max-width: 100%;
+    padding: 4px;
   }
 
   .plans-grid {
@@ -1755,6 +1771,7 @@ body {
 
   .plan-card {
     padding: 22px 18px !important;
+    border-radius: 20px !important;
   }
 
   .plan-price {
@@ -1762,7 +1779,7 @@ body {
   }
 
   .payment-qr-img {
-    max-width: 240px !important;
+    max-width: 220px !important;
     width: 100% !important;
     height: auto !important;
   }
@@ -1773,6 +1790,171 @@ body {
 
   .bento-card-wide {
     grid-column: span 1 !important;
+  }
+
+  /* DNS Guide Mobile Optimization */
+  .dns-instructions-card {
+    padding: 16px 14px !important;
+    border-radius: 16px !important;
+  }
+
+  .safari-warning-box {
+    padding: 12px 14px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .safari-warning-title {
+    font-size: 14px !important;
+  }
+
+  .safari-warning-desc {
+    font-size: 12.5px !important;
+    margin-left: 20px !important;
+  }
+
+  .dns-steps-list {
+    gap: 16px !important;
+  }
+
+  .dns-step-item {
+    gap: 10px !important;
+  }
+
+  .step-num-badge {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    font-size: 12px !important;
+  }
+
+  .step-title {
+    font-size: 14.5px !important;
+  }
+
+  .step-desc {
+    font-size: 13px !important;
+    line-height: 1.55 !important;
+  }
+
+  .ios-path-badge {
+    font-size: 11.5px !important;
+    padding: 2px 6px !important;
+    word-break: break-word !important;
+  }
+
+  /* Zalo Community Card Mobile Optimization */
+  .zalo-community-card {
+    padding: 16px 14px !important;
+    border-radius: 16px !important;
+  }
+
+  .zalo-community-title {
+    font-size: 15.5px !important;
+  }
+
+  .zalo-community-sub {
+    font-size: 12.5px !important;
+  }
+
+  .zalo-community-actions {
+    width: 100% !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .btn-zalo-group {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 11px 16px !important;
+    font-size: 13.5px !important;
+  }
+
+  /* Frame Promo Banner Mobile */
+  .frame-promo-banner {
+    padding: 16px 14px !important;
+    border-radius: 16px !important;
+  }
+
+  .frame-promo-banner .btn-primary {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* ============================================================
+   MOBILE STICKY BOTTOM ACTION BAR (iPhone Safari Optimized)
+   ============================================================ */
+.mobile-sticky-bar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 74px;
+  }
+
+  .mobile-sticky-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(8, 10, 15, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)) 10px;
+    z-index: 1000;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.7);
+  }
+
+  .mobile-bar-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    text-decoration: none;
+    color: #94A3B8;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 5px 8px;
+    border-radius: 10px;
+    transition: all 0.15s;
+    flex: 1;
+    text-align: center;
+  }
+
+  .mobile-bar-btn i {
+    font-size: 16px;
+  }
+
+  .mobile-bar-btn.btn-bar-buy {
+    color: #F59E0B;
+  }
+
+  .mobile-bar-btn.btn-bar-frame {
+    color: #FDE68A;
+  }
+
+  .mobile-bar-btn.btn-bar-dns {
+    color: #38BDF8;
+  }
+
+  .mobile-bar-btn.btn-bar-zalo {
+    color: #0068FF;
+  }
+
+  .mobile-bar-btn:active {
+    background: rgba(255, 255, 255, 0.08);
+    transform: scale(0.95);
+  }
+
+  .floating-zalo-widget {
+    bottom: 82px !important;
+    right: 12px !important;
   }
 }
 

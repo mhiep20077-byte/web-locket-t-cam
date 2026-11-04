@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080a0f">
+  <title>Khung Ảnh Widget Locket 📸 — TỔ CAM VIP</title>
+  <meta name="description"
+    content="Đổi khung ảnh widget Locket Gold & VIP theo sở thích. Tự do tùy biến với hơn 100+ mẫu khung hot trend hoặc tải ảnh PNG trong suốt của riêng bạn, không giới hạn lượt đổi.">
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%96%BC%EF%B8%8F%3C/text%3E%3C/svg%3E">
+
+  <!-- Google Fonts: Fredoka & Nunito & Space Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800;900&family=Nunito:wght@600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap&subset=vietnamese"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/security-shield.js"></script>
+
+  <style>
+    /* ============================================================
+       KHUNG WIDGET STYLING — LUXURY DARK + GOLD
+       ============================================================ */
+    .frame-page-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 16px 60px 16px;
+    }
+
+    .frame-hero {
+      text-align: center;
+      background: radial-gradient(ellipse at 50% 0%, rgba(245, 158, 11, 0.18) 0%, rgba(15, 23, 42, 0.7) 70%);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 24px;
+      padding: 36px 20px 28px 20px;
+      margin: 16px 0 28px 0;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .frame-badge-vip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #FDE68A;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .frame-title {
+      font-family: var(--font-heading);
+      font-size: clamp(24px, 4.5vw, 38px);
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.25;
+      margin: 0 auto 12px auto;
+      max-width: 780px;
+    }
+
+    .frame-title span {
+      background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 50%, #D97706 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .frame-subtitle {
+      font-size: 14px;
+      color: #94A3B8;
+      max-width: 660px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* 2 Columns Layout */
+    .frame-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .frame-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .frame-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 22px;
+      margin-bottom: 20px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .frame-panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .frame-panel-title {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Search & Tools */
+    .frame-tools-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .frame-input {
+      flex: 1;
+      min-width: 180px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 13.5px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .frame-input:focus {
+      border-color: #F59E0B;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+    }
+
+    .frame-btn-tool {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #CBD5E1;
+      border-radius: 12px;
+      padding: 9px 14px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .frame-btn-tool:hover {
+      background: rgba(245, 158, 11, 0.15);
+      color: #FDE68A;
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+
+    /* Tabs */
+    .frame-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 18px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .frame-tab-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: #94A3B8;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .frame-tab-btn.active {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: rgba(245, 158, 11, 0.5);
+      color: #FDE68A;
+    }
+
+    /* Drag & Drop Zone */
+    .dropzone-box {
+      border: 2px dashed rgba(245, 158, 11, 0.35);
+      background: rgba(245, 158, 11, 0.04);
+      border-radius: 16px;
+      padding: 18px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 18px;
+    }
+
+    .dropzone-box:hover,
+    .dropzone-box.dragging {
+      border-color: #F59E0B;
+      background: rgba(245, 158, 11, 0.1);
+      transform: scale(1.01);
+    }
+
+    .dropzone-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #FDE68A;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .dropzone-hint {
+      font-size: 11.5px;
+      color: #94A3B8;
+    }
+
+    /* Gallery Grid */
+    .frame-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      max-height: 640px;
+      overflow-y: auto;
+      padding-right: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(245, 158, 11, 0.3) transparent;
+    }
+
+    @media (max-width: 600px) {
+      .frame-gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+    }
+
+    .frame-item-card {
+      position: relative;
+      background: rgba(0, 0, 0, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .frame-item-card:hover {
+      border-color: #F59E0B;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.15);
+    }
+
+    .frame-item-card.selected {
+      border-color: #F59E0B;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.35);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .frame-thumb-box {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 12px;
+      overflow: hidden;
+      background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 0 / 16px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .frame-thumb-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      transition: transform 0.2s;
+    }
+
+    .frame-item-card:hover .frame-thumb-img {
+      transform: scale(1.05);
+    }
+
+    .frame-caption {
+      font-size: 11.5px;
+      color: #CBD5E1;
+      padding: 6px 22px 2px 4px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      font-weight: 600;
+    }
+
+    .frame-fav-btn {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      background: transparent;
+      border: none;
+      color: #94A3B8;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 4px;
+      transition: color 0.15s;
+    }
+
+    .frame-fav-btn.is-fav {
+      color: #EF4444;
+    }
+
+    /* Right Column: Live Mockup */
+    .widget-preview-card {
+      position: sticky;
+      top: 16px;
+    }
+
+    .ios-widget-mockup {
+      width: 100%;
+      max-width: 270px;
+      aspect-ratio: 1;
+      margin: 0 auto 18px auto;
+      border-radius: 38px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.12);
+      position: relative;
+      overflow: hidden;
+      background: #0f172a;
+    }
+
+    .widget-sample-photo {
+      position: absolute;
+      inset: 0;
+      background: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80') center / cover;
+      transition: all 0.3s;
+    }
+
+    .widget-frame-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .widget-badge-overlay {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 3;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(8px);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      color: #fff;
+      font-weight: 800;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .swatches-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .swatch-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    .swatch-btn:hover,
+    .swatch-btn.active {
+      transform: scale(1.2);
+      border-color: #F59E0B;
+    }
+
+    /* Buttons */
+    .btn-apply-frame {
+      width: 100%;
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+      color: #000;
+      font-weight: 900;
+      font-size: 15px;
+      padding: 13px 20px;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
+      transition: all 0.2s;
+    }
+
+    .btn-apply-frame:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.5);
+    }
+
+    .btn-apply-frame:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-remove-frame {
+      width: 100%;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #F87171;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 10px;
+      transition: all 0.2s;
+    }
+
+    .btn-remove-frame:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #EF4444;
+    }
+
+    /* Status Alert */
+    .frame-status-alert {
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 14px;
+      display: none;
+      word-break: break-word;
+    }
+
+    .frame-status-alert.success {
+      display: block;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #6EE7B7;
+    }
+
+    .frame-status-alert.error {
+      display: block;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #FCA5A5;
+    }
+
+    .frame-status-alert.info {
+      display: block;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #7DD3FC;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Ambient Glow Background -->
+  <div class="ambient-glow">
+    <div class="ambient-blob blob-gold"></div>
+    <div class="ambient-blob blob-vip"></div>
+    <div class="ambient-blob blob-cyan"></div>
+  </div>
+
+  <div class="frame-page-container">
+
+    <!-- Top Navigation Bar (Glassmorphic) -->
+    <header class="top-nav">
+      <a href="index.html" class="nav-brand">
+        <div class="brand-icon-badge">👑</div>
+        <div class="brand-text">
+          <h1>TỔ CAM</h1>
+          <span>LOCKET VIP PRO</span>
+        </div>
+      </a>
+
+      <ul class="nav-menu">
+        <li><a href="index.html" class="nav-link"><i class="fa-solid fa-house"></i> Trang Chủ</a></li>
+        <li><a href="index.html#pricing" class="nav-link"><i class="fa-solid fa-tags"></i> Mua VIP</a></li>
+        <li><a href="index.html#dns-guide" class="nav-link"><i class="fa-solid fa-book-open"></i> Hướng Dẫn DNS</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="ctv.html" class="btn-chip"
+          style="background: rgba(37, 99, 235, 0.1); border-color: rgba(37, 99, 235, 0.35); color: #38BDF8; font-weight: 800;"
+          title="Dành cho CTV &amp; Đại lý">
+          <i class="fa-solid fa-handshake"></i>
+          <span>Cổng CTV</span>
+        </a>
+        <a href="https://zalo.me/g/shprtxgdepc6wscxwmtg" target="_blank" rel="noopener noreferrer"
+          class="btn-chip chip-zalo"
+          style="background: linear-gradient(135deg, rgba(0, 104, 255, 0.15), rgba(37, 99, 235, 0.25)); border-color: rgba(0, 104, 255, 0.45); color: #0068FF; font-weight: 800;"
+          title="Nhóm Zalo Nhận Thông Tin Mới Nhất">
+          <i class="fa-solid fa-users"></i>
+          <span>Nhóm Zalo</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <div class="frame-hero">
+      <div class="frame-badge-vip">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> TÍNH NĂNG ĐỘC QUYỀN LOCKET GOLD &amp; VIP
+      </div>
+      <h1 class="frame-title">Tùy Biến <span>Khung Ảnh Widget</span> Locket 📸</h1>
+      <p class="frame-subtitle">
+        Cá nhân hoá widget Locket trên màn hình chính iPhone của bạn. Đổi khung không giới hạn, chọn từ bộ sưu tập hơn 100+ mẫu hot trend hoặc tải ảnh PNG trong suốt của riêng bạn!
+      </p>
+    </div>
+
+    <!-- 2 Columns Layout -->
+    <div class="frame-layout">
+
+      <!-- LEFT COLUMN: Gallery & Upload -->
+      <div class="frame-left-col">
+
+        <!-- Panel 1: Upload Custom Frame -->
+        <div class="frame-panel">
+          <div class="frame-panel-head">
+            <div class="frame-panel-title">
+              <i class="fa-solid fa-cloud-arrow-up" style="color: #F59E0B;"></i>
+              <span>Tải Khung Riêng Của Bạn</span>
+            </div>
+            <span style="font-size: 11px; color: #94A3B8; font-weight: 700;">Hỗ trợ PNG trong suốt 1:1</span>
+          </div>
+
+          <!-- Drag and drop zone -->
+          <div class="dropzone-box" id="frame-dropzone" onclick="document.getElementById('frame-file-input').click()">
+            <div class="dropzone-title">
+              <i class="fa-solid fa-file-image"></i> Bấm để chọn ảnh khung hoặc kéo thả vào đây
+            </div>
+            <div class="dropzone-hint">
+              Chuẩn tỉ lệ vuông 1:1 (khuyên dùng 1080×1080), nền trong suốt ở phần giữa để lộ ảnh bạn bè. Tối đa 8MB.
+            </div>
+            <input type="file" id="frame-file-input" accept="image/png,image/jpeg,image/webp" style="display: none;">
+          </div>
+        </div>
+
+        <!-- Panel 2: Community Gallery -->
+        <div class="frame-panel">
+          <div class="frame-panel-head">
+            <div class="frame-panel-title">
+              <i class="fa-solid fa-icons" style="color: #FDE68A;"></i>
+              <span>Gallery Mẫu Khung Cộng Đồng</span>
+            </div>
+            <span style="font-size: 12px; color: var(--gold-primary); font-weight: 800;" id="gallery-count-text">
+              Đang tải mẫu...
+            </span>
+          </div>
+
+          <!-- Tools Row -->
+          <div class="frame-tools-row">
+            <input type="text" id="frame-search-input" class="frame-input" placeholder="🔍 Tìm kiếm mẫu khung..." autocomplete="off">
+            <button type="button" class="frame-btn-tool" id="btn-reload-gallery" onclick="loadGallery()">
+              <i class="fa-solid fa-rotate"></i> Tải lại
+            </button>
+            <button type="button" class="frame-btn-tool" id="btn-random-frame" onclick="pickRandomFrame()">
+              <i class="fa-solid fa-dice"></i> Ngẫu nhiên
+            </button>
+          </div>
+
+          <!-- Tabs -->
+          <div class="frame-tabs">
+            <button type="button" class="frame-tab-btn active" id="tab-all-frames" onclick="switchGalleryTab('all')">
+              Tất cả mẫu
+            </button>
+            <button type="button" class="frame-tab-btn" id="tab-fav-frames" onclick="switchGalleryTab('fav')">
+              ⭐ Yêu thích (<span id="fav-count">0</span>)
+            </button>
+          </div>
+
+          <!-- Gallery Grid -->
+          <div class="frame-gallery-grid" id="gallery-container">
+            <!-- Dynamic injected frames -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Interactive Live Mockup & Submit Form -->
+      <div class="frame-right-col">
+        <div class="frame-panel widget-preview-card">
+          <div class="frame-panel-head">
+            <div class="frame-panel-title">
+              <i class="fa-solid fa-mobile-screen-button" style="color: #38BDF8;"></i>
+              <span>Xem Trước Widget</span>
+            </div>
+            <button type="button" class="frame-btn-tool" style="padding: 4px 10px; font-size: 11px;" onclick="resetPreview()">
+              <i class="fa-solid fa-rotate-left"></i> Đặt lại
+            </button>
+          </div>
+
+          <!-- Realistic iOS Widget Mockup -->
+          <div class="ios-widget-mockup" id="widget-mockup-box">
+            <div class="widget-sample-photo" id="widget-photo-bg"></div>
+            <img class="widget-frame-layer" id="widget-frame-layer" src="" alt="Khung ảnh" style="display: none;">
+            <div class="widget-badge-overlay" id="widget-frame-pill">
+              Chiếc widget của bạn
+            </div>
+          </div>
+
+          <!-- Swatches / Test photo picker -->
+          <div class="swatches-row">
+            <span style="font-size: 11.5px; color: #94A3B8; font-weight: 700; margin-right: 4px;">Nền mẫu:</span>
+            <button type="button" class="swatch-btn active" style="background: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80') center / cover;" onclick="setPhotoBg('photo1')" title="Ảnh mẫu 1"></button>
+            <button type="button" class="swatch-btn" style="background: url('https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80') center / cover;" onclick="setPhotoBg('photo2')" title="Ảnh mẫu 2"></button>
+            <button type="button" class="swatch-btn" style="background: #f472b6;" onclick="setPhotoBg('#f472b6')" title="Hồng Y2K"></button>
+            <button type="button" class="swatch-btn" style="background: #f59e0b;" onclick="setPhotoBg('#f59e0b')" title="Vàng Gold"></button>
+            <button type="button" class="swatch-btn" style="background: #38bdf8;" onclick="setPhotoBg('#38bdf8')" title="Xanh Cyan"></button>
+            <button type="button" class="frame-btn-tool" style="padding: 4px 8px; font-size: 11px; margin-left: auto;" onclick="document.getElementById('sample-photo-input').click()">
+              <i class="fa-solid fa-image"></i> Đổi ảnh thử
+            </button>
+            <input type="file" id="sample-photo-input" accept="image/*" style="display: none;">
+          </div>
+
+          <!-- Form Áp Dụng Khung Cho Tài Khoản Locket -->
+          <div style="margin-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 16px;">
+            <label style="display: block; font-size: 12.5px; font-weight: 800; color: #CBD5E1; margin-bottom: 6px;">
+              Username / UID Locket của bạn:
+            </label>
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+              <input type="text" id="target-identifier-input" class="frame-input"
+                placeholder="ví dụ: kienviet (hoặc dán link profile)..." autocomplete="off" spellcheck="false">
+              <button type="button" class="frame-btn-tool" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.35); color: #38BDF8;"
+                onclick="checkCurrentFrameStatus()">
+                <i class="fa-solid fa-magnifying-glass"></i> Kiểm tra
+              </button>
+            </div>
+
+            <!-- Custom Name & Share Toggle (hiển thị khi upload ảnh riêng) -->
+            <div id="custom-upload-options" style="display: none; margin-bottom: 12px; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.06);">
+              <label style="display: block; font-size: 12px; font-weight: 700; color: #FDE68A; margin-bottom: 4px;">
+                Tên khung ảnh (tùy chọn):
+              </label>
+              <input type="text" id="custom-frame-name" class="frame-input" placeholder="ví dụ: Khung Shin-chan Cute" maxlength="40" style="margin-bottom: 8px; padding: 8px 12px;">
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #CBD5E1; cursor: pointer;">
+                <input type="checkbox" id="share-community-chk" checked style="accent-color: #F59E0B;">
+                <span>Chia sẻ khung này lên Gallery cộng đồng</span>
+              </label>
+            </div>
+
+            <!-- Action Buttons -->
+            <button type="button" class="btn-apply-frame" id="btn-submit-frame" onclick="applyFrameToLocket()">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> <span id="btn-apply-text">Áp Dụng Khung Ngay ♡</span>
+            </button>
+
+            <button type="button" class="btn-remove-frame" id="btn-remove-frame" onclick="removeFrameFromLocket()">
+              <i class="fa-solid fa-trash-can"></i> Gỡ khung về mặc định
+            </button>
+
+            <!-- Alert Message Box -->
+            <div class="frame-status-alert" id="frame-alert-box"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="js/khung.js"></script>
+</body>
+
+</html>

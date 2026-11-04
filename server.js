@@ -1421,6 +1421,67 @@ app.get('/api/frame/status', async (req, res) => {
     if (!resp.ok || !data) {
       return res.status(resp.status || 500).json({ status: 'error', message: data?.message || 'Không tìm thấy thông tin khung' });
     }
+
+    // Tự động làm giàu thông tin tài khoản thật từ Locket (Ảnh đại diện, Họ tên, Username, Gói Gold)
+    if (data && data.data) {
+      const resolvedUid = data.data.uid || identifier;
+      let profileFound = false;
+
+      // 1. Thử qua Kawaii userinfo
+      try {
+        const userInfoRes = await fetch(`https://ctv.nodns.vn/api/v1/userinfo?user=${encodeURIComponent(identifier)}`, {
+          headers: {
+            'x-api-key': apiKey,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+          }
+        });
+        const uData = await userInfoRes.json().catch(() => null);
+        if (userInfoRes.ok && uData && (uData.status === 'success' || uData.uid)) {
+          data.data.username = uData.username || identifier;
+          data.data.fullName = uData.full_name || uData.username || identifier;
+          data.data.avatarUrl = uData.profile_picture_url || null;
+          data.data.hasGold = uData.gold?.has_gold || false;
+          data.data.goldExpiry = uData.gold?.expiry_date || null;
+          profileFound = true;
+        }
+      } catch (_) { }
+
+      // 2. Fallback qua Cụ Cam nếu chưa có avatar
+      if (!profileFound || !data.data.avatarUrl) {
+        try {
+          const cucamKey = settings.apiConfig?.cucamApiKey || '';
+          const cucamBase = settings.apiConfig?.cucamApiBase || 'https://locket.2707226.xyz';
+          if (cucamKey) {
+            const ccRes = await fetch(`${cucamBase}/api/uid/check?username=${encodeURIComponent(identifier)}`, {
+              headers: { 'Authorization': `Bearer ${cucamKey}` }
+            });
+            const ccData = await ccRes.json().catch(() => null);
+            if (ccRes.ok && ccData?.data) {
+              data.data.username = data.data.username || ccData.data.username || identifier;
+              data.data.fullName = data.data.fullName || ccData.data.username || identifier;
+              data.data.avatarUrl = data.data.avatarUrl || ccData.data.avatarUrl || null;
+              if (ccData.data.active) data.data.hasGold = true;
+            }
+          }
+        } catch (_) { }
+      }
+
+      // 3. Fallback qua danh sách CTV Customers
+      if (!data.data.avatarUrl) {
+        const ctvCusts = loadCtvCustomers();
+        const foundCust = ctvCusts.find(c => 
+          (c.username && cleanLocketUsername(c.username) === identifier.toLowerCase()) || 
+          (c.uid && c.uid.toLowerCase() === resolvedUid.toLowerCase())
+        );
+        if (foundCust) {
+          data.data.username = data.data.username || foundCust.username || identifier;
+          data.data.fullName = data.data.fullName || foundCust.fullName || identifier;
+          data.data.avatarUrl = data.data.avatarUrl || foundCust.avatarUrl || null;
+          if (foundCust.active) data.data.hasGold = true;
+        }
+      }
+    }
+
     return res.json(data);
   } catch (e) {
     return res.status(502).json({ status: 'error', message: 'Lỗi kết nối kiểm tra khung: ' + e.message });

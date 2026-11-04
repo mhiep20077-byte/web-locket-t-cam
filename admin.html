@@ -662,6 +662,11 @@
         </button>
       </li>
       <li class="nav-item">
+        <button type="button" onclick="switchAdminTab('tab-frames')">
+          <i class="fa-solid fa-wand-magic-sparkles" style="color: #F59E0B;"></i> Quản Lý Khung Widget
+        </button>
+      </li>
+      <li class="nav-item">
         <button type="button" onclick="switchAdminTab('tab-payment')">
           <i class="fa-solid fa-credit-card"></i> Ngân Hàng &amp; VietQR
         </button>
@@ -1702,6 +1707,227 @@
       </div>
     </div>
 
+    <!-- ==================== TAB: QUẢN LÝ KHUNG WIDGET (TOÀN DIỆN) ==================== -->
+    <div id="tab-frames" class="admin-tab-pane" style="display: none;">
+      <div class="page-title">
+        <span><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--gold);"></i> Quản Lý Toàn Bộ Khung Widget Locket 📸</span>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <a href="khung.html" target="_blank" class="btn-cancel"
+            style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px; color: #F59E0B; border-color: rgba(245, 158, 11, 0.4);">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở Trang Đổi Khung
+          </a>
+          <button type="button" class="btn-save" style="background: rgba(255,255,255,0.08); color: #fff; border: 1px solid var(--border);" onclick="loadAdminFrameManagement()">
+            <i class="fa-solid fa-rotate"></i> Làm Mới
+          </button>
+          <button type="button" class="btn-save" onclick="saveAdminFrameSettings()">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu Cài Đặt Khung
+          </button>
+        </div>
+      </div>
+
+      <!-- 1. Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="label">TỔNG MẪU KHUNG TRONG KHO</div>
+          <div class="val" id="af-stat-total-frames" style="color: var(--gold);">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">KHUNG RIÊNG CỦA SHOP</div>
+          <div class="val" id="af-stat-custom-frames" style="color: #38BDF8;">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">MÁY CHỦ API KHUNG (NODNS)</div>
+          <div class="val" id="af-stat-api-status" style="font-size: 1.25rem; color: #10B981;">
+            <i class="fa-solid fa-circle-check"></i> ĐANG CHẠY
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="label">TRẠNG THÁI TRANG KHÁCH</div>
+          <div class="val" id="af-stat-feature-status" style="font-size: 1.25rem; color: #10B981;">ĐANG BẬT</div>
+        </div>
+      </div>
+
+      <!-- 2. Panel A: Tra Cứu & Can Thiệp Khung Của Bất Kỳ Tài Khoản Nào -->
+      <div class="panel-card" style="border-left: 4px solid var(--gold);">
+        <div class="panel-title">
+          <i class="fa-solid fa-user-gear" style="color: var(--gold);"></i>
+          <span>Tra Cứu &amp; Can Thiệp Khung Của Bất Kỳ Tài Khoản Khách Nào</span>
+        </div>
+        <p style="color: var(--text-sub); font-size: 13.5px; margin-bottom: 14px;">
+          Admin có thể nhập bất kỳ Username, UID hoặc dán link Locket của khách để xem avatar, kiểm tra khung hiện tại, gán khung tùy ý hoặc gỡ khung về mặc định ngay lập tức.
+        </p>
+        <div class="form-row" style="margin-bottom: 14px;">
+          <div style="flex: 1;">
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="af-user-input" class="form-input" placeholder="ví dụ: tainguyen2408 hoặc dán link locket.cam/..." autocomplete="off">
+              <button type="button" class="btn-save" style="white-space: nowrap; padding: 0 22px;" id="btn-af-lookup" onclick="adminLookupUserFrame()">
+                <i class="fa-solid fa-magnifying-glass"></i> Tra Cứu
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kết quả tra cứu tài khoản -->
+        <div id="af-user-result" style="display: none; background: rgba(0, 0, 0, 0.4); border: 1.5px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 18px; margin-top: 14px;">
+          <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <img id="af-user-avatar" src="" alt="Avatar" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--gold); background: #1e293b; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);">
+            <div style="flex: 1; min-width: 220px;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <b id="af-user-fullname" style="font-size: 1.2rem; color: #fff;">---</b>
+                <span id="af-user-badge" class="badge-status st-activated">Tài khoản hợp lệ</span>
+              </div>
+              <div style="color: var(--text-sub); font-size: 13px; margin-top: 4px;">
+                Username: <b id="af-user-tag" style="color: #38BDF8;">@username</b> &nbsp;|&nbsp;
+                UID: <code id="af-user-uid" style="color: var(--gold); font-size: 12px; background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 6px;">---</code>
+              </div>
+              <div style="font-size: 13px; color: #CBD5E1; margin-top: 5px;">
+                Trạng thái khung: <b id="af-user-framestatus" style="color: #6EE7B7;">Mặc định</b> &nbsp;|&nbsp;
+                Lượt đổi: <b id="af-user-quota" style="color: var(--gold);">Không giới hạn</b>
+              </div>
+            </div>
+
+            <!-- Khung ảnh hiện tại của khách (nếu có) -->
+            <div id="af-user-current-frame-box" style="display: none; text-align: center; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 10px 14px; background: rgba(0, 0, 0, 0.35);">
+              <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 5px; font-weight: 700;">Khung Đang Dùng:</div>
+              <img id="af-user-current-frame-img" src="" alt="Khung" style="width: 52px; height: 52px; object-fit: contain; border-radius: 8px; background: #0f172a;">
+              <div style="margin-top: 5px;"><a id="af-user-current-frame-link" href="#" target="_blank" style="font-size: 11px; color: var(--gold); text-decoration: underline;">Xem ảnh gốc ↗</a></div>
+            </div>
+          </div>
+
+          <!-- Bộ công cụ Admin can thiệp -->
+          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 13px; font-weight: 800; color: #fff;"><i class="fa-solid fa-screwdriver-wrench" style="color: var(--gold);"></i> Can Thiệp Admin:</span>
+            
+            <button type="button" class="btn-save" style="padding: 9px 18px; font-size: 13px;" onclick="openAdminAssignFrameModal()">
+              <i class="fa-solid fa-paintbrush"></i> Gán Khung Mới Cho Khách
+            </button>
+            <button type="button" class="btn-cancel" style="padding: 9px 18px; font-size: 13px; color: #F87171; border-color: rgba(239, 68, 68, 0.4);" onclick="adminRemoveUserFrame()">
+              <i class="fa-solid fa-trash-can"></i> Gỡ Khung Về Mặc Định
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Panel B: Quản Lý Kho Gallery Mẫu Khung & Khung Độc Quyền -->
+      <div class="panel-card">
+        <div class="panel-title" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-shapes" style="color: #38BDF8;"></i>
+            <span>Kho Mẫu Khung Widget (<span id="af-gallery-total-count">0</span> mẫu)</span>
+          </div>
+          <button type="button" class="btn-save" style="padding: 8px 16px; font-size: 13px;" onclick="openAddFrameModal()">
+            <i class="fa-solid fa-plus"></i> Thêm Mẫu Khung Vào Kho
+          </button>
+        </div>
+
+        <!-- Bộ lọc và tìm kiếm khung -->
+        <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+          <input type="text" id="af-gallery-search" class="form-input" style="max-width: 320px;" placeholder="🔍 Tìm kiếm mẫu khung theo tên..." oninput="filterAdminGallery()">
+          <select id="af-gallery-filter-type" class="form-select" style="max-width: 240px;" onchange="filterAdminGallery()">
+            <option value="all">Tất cả mẫu khung</option>
+            <option value="custom">Chỉ khung độc quyền Shop tải lên 👑</option>
+            <option value="community">Chỉ khung Gallery Cộng đồng</option>
+          </select>
+        </div>
+
+        <!-- Lưới mẫu khung -->
+        <div id="af-gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; max-height: 580px; overflow-y: auto; padding-right: 6px;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- 4. Panel C: Cấu Hình & Chính Sách Hệ Thống Khung -->
+      <div class="panel-card">
+        <div class="panel-title">
+          <i class="fa-solid fa-sliders" style="color: #A855F7;"></i>
+          <span>Cấu Hình &amp; Chính Sách Hoạt Động Khung</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Khóa / Mở Chức Năng Đổi Khung Trên Web Khách:</label>
+            <select id="af-cfg-enabled" class="form-select">
+              <option value="true">🟢 Đang Bật — Khách có thể đổi khung tự do</option>
+              <option value="false">🔴 Tạm Đóng — Tạm khóa và ẩn chức năng đổi khung</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Quy Định Đối Tượng Được Đổi Khung:</label>
+            <select id="af-cfg-require-gold" class="form-select">
+              <option value="false">Mở Tự Do (Bất kỳ tài khoản Locket nào cũng đổi được)</option>
+              <option value="true">👑 Chỉ Khách Đã Kích Hoạt Locket Gold / VIP Mới Được Đổi</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Cho Phép Khách Tự Upload Ảnh PNG Riêng:</label>
+            <select id="af-cfg-allow-upload" class="form-select">
+              <option value="true">Cho phép khách tải ảnh PNG từ điện thoại/máy tính</option>
+              <option value="false">Khóa — Khách chỉ được chọn các mẫu trong Gallery</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Dung Lượng Tối Đa Khách Upload (MB):</label>
+            <input type="number" id="af-cfg-max-size" class="form-input" min="1" max="25" value="8">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label">API Key Riêng Cho Khung Ảnh (Bỏ trống sẽ dùng chung Kawaii API Key):</label>
+            <input type="text" id="af-cfg-api-key" class="form-input" placeholder="ví dụ: ctv_key_..." autocomplete="off">
+            <small style="color: var(--text-sub); display: block; margin-top: 4px;">API kết nối tới máy chủ <code>https://khunganh.nodns.vn</code>. Nếu để trống hệ thống sẽ tự lấy key ở mục Cấu hình API.</small>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Thông Báo Lưu Ý Đầu Trang Đổi Khung (Tùy chọn hiển thị banner):</label>
+          <textarea id="af-cfg-notice" class="form-textarea" rows="2" placeholder="ví dụ: Lưu ý vuốt tắt hẳn app Locket rồi mở lại sau 1 phút để thấy widget cập nhật khung mới..."></textarea>
+        </div>
+
+        <button type="button" class="btn-save" onclick="saveAdminFrameSettings()">
+          <i class="fa-solid fa-floppy-disk"></i> Lưu Cấu Hình Hệ Thống Khung
+        </button>
+      </div>
+
+      <!-- 5. Panel D: Nhật Ký Đổi Khung & Hoạt Động -->
+      <div class="panel-card">
+        <div class="panel-title" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-clock-rotate-left" style="color: #F59E0B;"></i>
+            <span>Nhật Ký Đổi Khung Gần Đây (<span id="af-logs-count">0</span> lượt)</span>
+          </div>
+          <button type="button" class="btn-cancel" style="padding: 6px 14px; font-size: 12px; color: #F87171; border-color: rgba(239, 68, 68, 0.4);" onclick="clearAdminFrameLogs()">
+            <i class="fa-solid fa-broom"></i> Dọn Sạch Nhật Ký
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>THỜI GIAN</th>
+                <th>HÀNH ĐỘNG</th>
+                <th>TÀI KHOẢN KHÁCH</th>
+                <th>MẪU KHUNG</th>
+                <th>THỰC HIỆN BỞI</th>
+                <th>TRẠNG THÁI</th>
+              </tr>
+            </thead>
+            <tbody id="af-logs-table-body">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-sub);">
+                  Chưa có lượt đổi khung nào được ghi nhận
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- Modal Chỉnh Sửa Coin CTV -->
@@ -1777,6 +2003,98 @@
       <div style="display: flex; gap: 10px; justify-content: flex-end;">
         <button type="button" class="btn-cancel" onclick="closeAddCtvPlanModal()">Hủy</button>
         <button type="button" class="btn-save" onclick="executeAddNewCtvPlan()">Thêm Gói</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Thêm Khung Mới Vào Kho (Admin Upload) -->
+  <div class="modal-overlay" id="modal-add-frame"
+    style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #121622; border: 1.5px solid var(--border); border-radius: 20px; max-width: 500px; width: 100%; padding: 24px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <b style="font-size: 1.2rem; color: #fff;"><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--gold);"></i> Thêm Mẫu Khung Vào Kho</b>
+        <button type="button" class="btn-toggle-sidebar" style="width: 32px; height: 32px;" onclick="closeAddFrameModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label class="form-label">Tên mẫu khung (*):</label>
+        <input type="text" id="modal-af-name" class="form-input" placeholder="ví dụ: Khung Shin-chan VIP" maxlength="50">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label class="form-label">Tải tệp ảnh PNG từ máy tính (Khuyên dùng 1080×1080 trong suốt):</label>
+        <input type="file" id="modal-af-file" accept="image/png,image/jpeg,image/webp" class="form-input" onchange="handleModalFrameFileUpload(this)">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label class="form-label">HOẶC Dán link ảnh trực tiếp (URL):</label>
+        <input type="text" id="modal-af-url" class="form-input" placeholder="https://..." oninput="handleModalFrameUrlInput(this)">
+      </div>
+
+      <!-- Preview ảnh khung -->
+      <div id="modal-af-preview-box" style="display: none; text-align: center; margin-bottom: 14px; background: rgba(0,0,0,0.5); padding: 12px; border-radius: 12px; border: 1px dashed var(--border);">
+        <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 6px;">Xem trước mẫu khung:</div>
+        <img id="modal-af-preview-img" src="" alt="Preview" style="max-width: 140px; max-height: 140px; object-fit: contain; border-radius: 12px; background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 0 / 16px 16px;">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 18px;">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #CBD5E1; cursor: pointer;">
+          <input type="checkbox" id="modal-af-is-vip" checked style="accent-color: var(--gold); width: 18px; height: 18px;">
+          <span>Đánh dấu mẫu khung VIP Độc Quyền Tổ Cam (Hiện huy hiệu 👑)</span>
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" class="btn-cancel" onclick="closeAddFrameModal()">Hủy</button>
+        <button type="button" class="btn-save" id="btn-submit-add-frame" onclick="submitAddNewFrame()">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Thêm Vào Kho Khung
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Gán Khung Trực Tiếp Cho Khách (Admin Assign Frame) -->
+  <div class="modal-overlay" id="modal-assign-frame"
+    style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #121622; border: 1.5px solid var(--border); border-radius: 20px; max-width: 540px; width: 100%; padding: 24px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <b style="font-size: 1.2rem; color: #fff;"><i class="fa-solid fa-paintbrush" style="color: var(--gold);"></i> Gán Khung Cho Khách Hàng</b>
+        <button type="button" class="btn-toggle-sidebar" style="width: 32px; height: 32px;" onclick="closeAdminAssignFrameModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <p style="color: var(--text-sub); font-size: 13.5px; margin-bottom: 14px;">
+        Đang can thiệp tài khoản: <b id="modal-assign-target-user" style="color: #38BDF8;">@username</b>
+      </p>
+
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label class="form-label">Cách 1: Chọn nhanh từ kho mẫu khung của shop:</label>
+        <select id="modal-assign-frame-select" class="form-select" onchange="handleAssignSelectChange(this)">
+          <option value="">-- Chọn 1 mẫu khung trong kho --</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label class="form-label">Cách 2: Hoặc tải tệp ảnh PNG riêng cho khách này:</label>
+        <input type="file" id="modal-assign-file" accept="image/png,image/jpeg,image/webp" class="form-input" onchange="handleAssignFileUpload(this)">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label class="form-label">Cách 3: Hoặc dán link ảnh khung (URL):</label>
+        <input type="text" id="modal-assign-url" class="form-input" placeholder="https://..." oninput="handleAssignUrlInput(this)">
+      </div>
+
+      <!-- Preview ảnh chuẩn bị gán -->
+      <div id="modal-assign-preview-box" style="display: none; text-align: center; margin-bottom: 14px; background: rgba(0,0,0,0.5); padding: 12px; border-radius: 12px; border: 1px dashed var(--border);">
+        <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 6px;">Xem trước khung chuẩn bị gán:</div>
+        <img id="modal-assign-preview-img" src="" alt="Preview" style="max-width: 140px; max-height: 140px; object-fit: contain; border-radius: 12px; background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 0 / 16px 16px;">
+        <div id="modal-assign-frame-name-text" style="font-size: 12px; color: var(--gold); font-weight: 700; margin-top: 4px;"></div>
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px;">
+        <button type="button" class="btn-cancel" onclick="closeAdminAssignFrameModal()">Hủy</button>
+        <button type="button" class="btn-save" id="btn-submit-assign-frame" onclick="executeAdminAssignFrame()">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Xác Nhận Gán Khung Ngay
+        </button>
       </div>
     </div>
   </div>

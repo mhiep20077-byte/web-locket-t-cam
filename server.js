@@ -1385,22 +1385,65 @@ app.all([
 // KHUNG ẢNH WIDGET LOCKET API (TÍCH HỢP https://khunganh.nodns.vn)
 // ============================================================
 
-// 1. Gallery khung ảnh cộng đồng
+// Helper ghi nhật ký đổi khung
+function addFrameLog(logEntry) {
+  try {
+    const settings = loadSettings();
+    if (!Array.isArray(settings.frameLogs)) {
+      settings.frameLogs = [];
+    }
+    settings.frameLogs.unshift({
+      id: 'flog_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      timestamp: new Date().toISOString(),
+      ...logEntry
+    });
+    if (settings.frameLogs.length > 100) {
+      settings.frameLogs = settings.frameLogs.slice(0, 100);
+    }
+    saveSettings(settings);
+  } catch (err) {
+    console.warn('[FRAME LOG] Lỗi ghi log:', err.message);
+  }
+}
+
+// 1. Gallery khung ảnh cộng đồng (Kết hợp cả kho nodns và khung riêng do Admin tạo)
 app.get('/api/frame/gallery', async (req, res) => {
   const settings = loadSettings();
   const apiKey = settings.apiConfig?.frameApiKey || settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
+  let frames = [];
+
   try {
     const resp = await fetch('https://khunganh.nodns.vn/api/v1/frame/gallery', {
       headers: { 'x-api-key': apiKey }
     });
     const data = await resp.json().catch(() => null);
-    if (!resp.ok || !data) {
-      return res.status(resp.status || 500).json({ status: 'error', message: data?.message || 'Không thể tải gallery khung ảnh' });
+    if (resp.ok && data && Array.isArray(data.data?.frames)) {
+      frames = data.data.frames;
     }
-    return res.json(data);
   } catch (e) {
-    return res.status(502).json({ status: 'error', message: 'Lỗi kết nối máy chủ khung ảnh: ' + e.message });
+    console.warn('[FRAME GALLERY] Lỗi tải gallery nodns:', e.message);
   }
+
+  // Kết hợp các mẫu khung riêng do Admin tải lên trong settings
+  const customFrames = Array.isArray(settings.customFrames) ? settings.customFrames : [];
+  if (customFrames.length > 0) {
+    const mapped = customFrames.map(cf => ({
+      name: cf.name + (cf.isVip ? ' 👑' : ''),
+      url: cf.url,
+      isCustom: true,
+      id: cf.id
+    }));
+    frames = [...mapped, ...frames];
+  }
+
+  return res.json({
+    status: 'success',
+    data: {
+      frames: frames,
+      count: frames.length,
+      noticeMessage: settings.frameSettings?.noticeMessage || ''
+    }
+  });
 });
 
 // 2. Tra cứu trạng thái khung hiện tại theo username hoặc UID
@@ -1500,6 +1543,16 @@ app.post('/api/frame/set', async (req, res) => {
   }
 
   const settings = loadSettings();
+  const fSettings = settings.frameSettings || {};
+
+  // Kiểm tra chính sách cấu hình Admin
+  if (fSettings.enabled === false) {
+    return res.status(403).json({ status: 'error', message: 'Chức năng Đổi Khung Widget hiện đang tạm đóng để bảo trì!' });
+  }
+  if (image && fSettings.allowCustomUpload === false) {
+    return res.status(403).json({ status: 'error', message: 'Hệ thống hiện chỉ cho phép chọn mẫu có sẵn, tạm khóa chức năng tự tải ảnh PNG riêng!' });
+  }
+
   const apiKey = settings.apiConfig?.frameApiKey || settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
   try {
     const payload = {
@@ -1523,6 +1576,17 @@ app.post('/api/frame/set', async (req, res) => {
     if (!resp.ok || !data) {
       return res.status(resp.status || 500).json({ status: 'error', message: data?.message || 'Đổi khung thất bại!' });
     }
+
+    // Ghi nhật ký đổi khung thành công
+    addFrameLog({
+      action: 'USER_SET_FRAME',
+      identifier: identifier,
+      frameName: payload.name || 'Khung Widget',
+      frameUrl: payload.frameUrl || (image ? 'Ảnh tự tải' : ''),
+      actor: 'Khách hàng',
+      status: 'SUCCESS'
+    });
+
     return res.json(data);
   } catch (e) {
     return res.status(502).json({ status: 'error', message: 'Lỗi kết nối máy chủ đổi khung: ' + e.message });
@@ -1552,10 +1616,241 @@ app.post('/api/frame/remove', async (req, res) => {
     if (!resp.ok || !data) {
       return res.status(resp.status || 500).json({ status: 'error', message: data?.message || 'Gỡ khung thất bại!' });
     }
+
+    addFrameLog({
+      action: 'USER_REMOVE_FRAME',
+      identifier: identifier,
+      actor: 'Khách hàng',
+      status: 'SUCCESS'
+    });
+
     return res.json(data);
   } catch (e) {
     return res.status(502).json({ status: 'error', message: 'Lỗi kết nối gỡ khung: ' + e.message });
   }
+});
+
+// ============================================================
+// 5. ADMIN FRAME MANAGEMENT APIS (QUẢN LÝ TOÀN BỘ HỆ THỐNG KHUNG)
+// ============================================================
+
+// 5.1. Lấy toàn bộ dữ liệu quản lý khung: Gallery, Khung riêng, Cài đặt, Nhật ký
+app.get('/api/admin/frames/data', requireAdmin, async (req, res) => {
+  const settings = loadSettings();
+  const apiKey = settings.apiConfig?.frameApiKey || settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
+  
+  let gallery = [];
+  let apiStatus = 'ONLINE';
+  let apiError = null;
+
+  try {
+    const resp = await fetch('https://khunganh.nodns.vn/api/v1/frame/gallery', {
+      headers: { 'x-api-key': apiKey }
+    });
+    const data = await resp.json().catch(() => null);
+    if (resp.ok && data && Array.isArray(data.data?.frames)) {
+      gallery = data.data.frames;
+    } else {
+      apiStatus = 'API_ERROR';
+      apiError = data?.message || 'Không thể lấy gallery từ khunganh.nodns.vn';
+    }
+  } catch (err) {
+    apiStatus = 'OFFLINE';
+    apiError = err.message;
+  }
+
+  const frameSettings = settings.frameSettings || {
+    enabled: true,
+    allowCustomUpload: true,
+    requireGold: false,
+    maxUploadMb: 8,
+    noticeMessage: ''
+  };
+
+  const customFrames = settings.customFrames || [];
+  const logs = settings.frameLogs || [];
+
+  return res.json({
+    ok: true,
+    data: {
+      apiStatus,
+      apiError,
+      apiKey: apiKey ? (apiKey.slice(0, 8) + '...' + apiKey.slice(-4)) : '',
+      fullApiKey: apiKey,
+      frameSettings,
+      customFrames,
+      gallery,
+      totalFramesCount: gallery.length + customFrames.length,
+      logs
+    }
+  });
+});
+
+// 5.2. Lưu cài đặt hệ thống khung
+app.post('/api/admin/frames/settings', requireAdmin, async (req, res) => {
+  const { frameSettings, frameApiKey } = req.body || {};
+  const settings = loadSettings();
+
+  if (frameSettings && typeof frameSettings === 'object') {
+    settings.frameSettings = {
+      ...(settings.frameSettings || {}),
+      ...frameSettings
+    };
+  }
+
+  if (typeof frameApiKey === 'string') {
+    if (!settings.apiConfig) settings.apiConfig = {};
+    settings.apiConfig.frameApiKey = frameApiKey.trim();
+  }
+
+  if (await saveSettings(settings)) {
+    return res.json({ ok: true, message: 'Đã lưu cấu hình quản lý khung thành công!' });
+  }
+  return res.status(500).json({ ok: false, message: 'Lỗi ghi cấu hình khung!' });
+});
+
+// 5.3. Thêm mẫu khung mới vào kho (Admin tải lên hoặc dán URL)
+app.post('/api/admin/frames/gallery/add', requireAdmin, async (req, res) => {
+  const { name, url, image, isVip } = req.body || {};
+  if (!name || (!url && !image)) {
+    return res.status(400).json({ ok: false, message: 'Vui lòng nhập tên khung và cung cấp ảnh!' });
+  }
+
+  const settings = loadSettings();
+  if (!Array.isArray(settings.customFrames)) settings.customFrames = [];
+
+  const newFrame = {
+    id: 'frame_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+    name: name.trim().slice(0, 50),
+    url: url || image,
+    isVip: !!isVip,
+    createdAt: new Date().toISOString()
+  };
+
+  settings.customFrames.unshift(newFrame);
+
+  if (await saveSettings(settings)) {
+    addFrameLog({
+      action: 'ADMIN_ADD_FRAME',
+      details: `Thêm mẫu khung mới: ${newFrame.name}`,
+      actor: 'Admin',
+      status: 'SUCCESS'
+    });
+    return res.json({ ok: true, message: 'Đã thêm mẫu khung mới vào kho thành công!', frame: newFrame });
+  }
+  return res.status(500).json({ ok: false, message: 'Lỗi lưu mẫu khung!' });
+});
+
+// 5.4. Xóa mẫu khung riêng khỏi kho
+app.post('/api/admin/frames/gallery/delete', requireAdmin, async (req, res) => {
+  const { id } = req.body || {};
+  if (!id) return res.status(400).json({ ok: false, message: 'Thiếu ID mẫu khung cần xóa!' });
+
+  const settings = loadSettings();
+  if (!Array.isArray(settings.customFrames)) settings.customFrames = [];
+
+  const initialLen = settings.customFrames.length;
+  settings.customFrames = settings.customFrames.filter(f => f.id !== id);
+
+  if (settings.customFrames.length !== initialLen) {
+    await saveSettings(settings);
+    addFrameLog({
+      action: 'ADMIN_DELETE_FRAME',
+      details: `Xóa mẫu khung ID: ${id}`,
+      actor: 'Admin',
+      status: 'SUCCESS'
+    });
+    return res.json({ ok: true, message: 'Đã xóa mẫu khung khỏi kho!' });
+  }
+  return res.status(404).json({ ok: false, message: 'Không tìm thấy mẫu khung cần xóa!' });
+});
+
+// 5.5. Admin thao tác trực tiếp lên tài khoản khách (Gán khung / Gỡ khung)
+app.post('/api/admin/frames/user-action', requireAdmin, async (req, res) => {
+  const { action, identifier: rawId, frameUrl, image, name } = req.body || {};
+  const identifier = cleanLocketUsername(rawId || '');
+  if (!identifier) {
+    return res.status(400).json({ ok: false, message: 'Vui lòng cung cấp username hoặc UID Locket!' });
+  }
+
+  const settings = loadSettings();
+  const apiKey = settings.apiConfig?.frameApiKey || settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
+
+  if (action === 'set') {
+    if (!frameUrl && !image) {
+      return res.status(400).json({ ok: false, message: 'Vui lòng chọn khung từ gallery hoặc tải ảnh khung lên!' });
+    }
+
+    try {
+      const payload = {
+        identifier: identifier,
+        name: (name || 'Khung Admin Gán').trim().slice(0, 40)
+      };
+      if (image) payload.image = image;
+      if (frameUrl) payload.frameUrl = frameUrl;
+
+      const resp = await fetch('https://khunganh.nodns.vn/api/v1/frame', {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json().catch(() => null);
+      if (!resp.ok || !data || data.status !== 'success') {
+        return res.status(400).json({ ok: false, message: data?.message || 'Không thể đổi khung cho tài khoản này!' });
+      }
+
+      addFrameLog({
+        action: 'ADMIN_SET_FRAME',
+        identifier,
+        frameName: name || 'Khung tùy biến',
+        actor: 'Admin',
+        status: 'SUCCESS'
+      });
+
+      return res.json({ ok: true, message: `Đã gán khung thành công cho tài khoản @${identifier}!`, data: data.data });
+    } catch (err) {
+      return res.status(502).json({ ok: false, message: 'Lỗi kết nối máy chủ gán khung: ' + err.message });
+    }
+  } else if (action === 'remove') {
+    try {
+      const resp = await fetch('https://khunganh.nodns.vn/api/v1/frame', {
+        method: 'DELETE',
+        headers: {
+          'x-api-key': apiKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ identifier })
+      });
+      const data = await resp.json().catch(() => null);
+      if (!resp.ok || !data || data.status !== 'success') {
+        return res.status(400).json({ ok: false, message: data?.message || 'Không thể gỡ khung cho tài khoản này!' });
+      }
+
+      addFrameLog({
+        action: 'ADMIN_REMOVE_FRAME',
+        identifier,
+        actor: 'Admin',
+        status: 'SUCCESS'
+      });
+
+      return res.json({ ok: true, message: `Đã gỡ khung thành công cho tài khoản @${identifier} về mặc định!` });
+    } catch (err) {
+      return res.status(502).json({ ok: false, message: 'Lỗi kết nối máy chủ gỡ khung: ' + err.message });
+    }
+  } else {
+    return res.status(400).json({ ok: false, message: 'Hành động không hợp lệ!' });
+  }
+});
+
+// 5.6. Dọn sạch nhật ký đổi khung
+app.post('/api/admin/frames/logs/clear', requireAdmin, async (req, res) => {
+  const settings = loadSettings();
+  settings.frameLogs = [];
+  await saveSettings(settings);
+  return res.json({ ok: true, message: 'Đã dọn sạch nhật ký đổi khung!' });
 });
 
 // ============================================================

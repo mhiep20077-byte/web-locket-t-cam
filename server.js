@@ -485,6 +485,36 @@ async function initializeDatabase() {
 
   for (const token of loadSessions()) activeAdminTokens.add(token);
   console.log('[DATABASE] PostgreSQL đã kết nối; dữ liệu JSON local được nạp nếu collection còn trống.');
+
+  // Tự động khôi phục tài khoản CTV @xuandieu09 nếu chưa tồn tại trong PostgreSQL
+  try {
+    const ctvData = databaseCache.get('ctv_users');
+    let ctvList = Array.isArray(ctvData) ? ctvData : [];
+    const settingsData = databaseCache.get('settings') || {};
+    if (!settingsData._deleted_xuandieu09 && !ctvList.some(u => u && String(u.username).toLowerCase() === 'xuandieu09')) {
+      console.log('[DATABASE] 🔄 Tự động khôi phục tài khoản CTV @xuandieu09 vào PostgreSQL...');
+      ctvList.push({
+        username: 'xuandieu09',
+        password: 'xuandieu123',
+        fullName: 'xuandieu09',
+        phone: '',
+        email: 'xuandieu09@gmail.com',
+        balance: 0,
+        coins: 0,
+        status: 'ACTIVE',
+        firstDepositDone: true,
+        createdAt: '2026-11-05T03:30:00.000Z'
+      });
+      databaseCache.set('ctv_users', ctvList);
+      await databasePool.query(
+        'INSERT INTO app_data (collection_name, payload, updated_at) VALUES ($1, $2::jsonb, NOW()) ON CONFLICT (collection_name) DO UPDATE SET payload = EXCLUDED.payload, updated_at = NOW()',
+        ['ctv_users', JSON.stringify(ctvList)]
+      );
+      console.log('[DATABASE] ✅ Đã khôi phục thành công @xuandieu09 vào PostgreSQL!');
+    }
+  } catch (recErr) {
+    console.error('[DATABASE] Lỗi khôi phục @xuandieu09:', recErr);
+  }
 }
 
 // Clean username helper
@@ -3546,8 +3576,24 @@ app.post('/api/ctv/customer/delete', requireCtvActive, async (req, res) => {
 // ============================================================
 
 // 1. Admin lấy danh sách toàn bộ CTV
-app.get('/api/admin/ctv/list', requireAdmin, (req, res) => {
-  const users = loadCtvUsers();
+app.get('/api/admin/ctv/list', requireAdmin, async (req, res) => {
+  let users = loadCtvUsers();
+  const settings = loadSettings();
+  if (!settings._deleted_xuandieu09 && !users.some(u => u && String(u.username).toLowerCase() === 'xuandieu09')) {
+    users.push({
+      username: 'xuandieu09',
+      password: 'xuandieu123',
+      fullName: 'xuandieu09',
+      phone: '',
+      email: 'xuandieu09@gmail.com',
+      balance: 0,
+      coins: 0,
+      status: 'ACTIVE',
+      firstDepositDone: true,
+      createdAt: '2026-11-05T03:30:00.000Z'
+    });
+    await saveCtvUsers(users);
+  }
   const customers = loadCtvCustomers();
   const data = users.map(u => {
     const custCount = customers.filter(c => c.ctvUsername.toLowerCase() === u.username.toLowerCase()).length;
@@ -3688,6 +3734,12 @@ app.post('/api/admin/ctv/delete', requireAdmin, async (req, res) => {
     }
   }
 
+  if (username.toLowerCase() === 'xuandieu09') {
+    const settings = loadSettings();
+    settings._deleted_xuandieu09 = true;
+    await saveSettings(settings);
+  }
+
   console.log(`[ADMIN CTV] 🗑️ Admin đã xóa vĩnh viễn tài khoản CTV @${username}!`);
   return res.json({
     ok: true,
@@ -3722,6 +3774,74 @@ app.post('/api/admin/ctv/reset-password', requireAdmin, async (req, res) => {
     ok: true,
     message: `Đã đổi mật khẩu cho CTV @${username} thành công!`
   });
+});
+
+// 3d. Admin thêm mới hoặc khôi phục tài khoản CTV
+app.post('/api/admin/ctv/create-or-restore', requireAdmin, async (req, res) => {
+  const { username, password, email, fullName, coins, status } = req.body || {};
+  if (!username) {
+    return res.status(400).json({ ok: false, message: 'Vui lòng cung cấp tên tài khoản CTV!' });
+  }
+
+  const cleanUser = cleanLocketUsername(username);
+  if (!cleanUser || cleanUser.length < 3) {
+    return res.status(400).json({ ok: false, message: 'Tên tài khoản CTV tối thiểu 3 ký tự (chữ cái, số, gạch dưới)!' });
+  }
+
+  const users = loadCtvUsers();
+  let target = users.find(u => u.username.toLowerCase() === cleanUser.toLowerCase());
+
+  const numCoins = Math.max(0, parseInt(coins, 10) || 0);
+  const userPass = String(password || '').trim() || `${cleanUser}123`;
+  const userEmail = String(email || '').trim().toLowerCase() || `${cleanUser}@gmail.com`;
+
+  if (cleanUser.toLowerCase() === 'xuandieu09') {
+    const settings = loadSettings();
+    delete settings._deleted_xuandieu09;
+    await saveSettings(settings);
+  }
+
+  if (target) {
+    target.status = status === 'BLOCKED' ? 'BLOCKED' : 'ACTIVE';
+    target.firstDepositDone = true;
+    if (password) target.password = userPass;
+    if (email) target.email = userEmail;
+    if (fullName) target.fullName = fullName;
+    if (coins !== undefined && coins !== null && coins !== '') {
+      target.coins = numCoins;
+      target.balance = numCoins * 1000;
+    }
+    if (!(await saveCtvUsers(users))) {
+      return res.status(500).json({ ok: false, message: 'Không thể cập nhật tài khoản CTV!' });
+    }
+    return res.json({
+      ok: true,
+      message: `Đã khôi phục/cập nhật thông tin tài khoản CTV @${cleanUser}!`,
+      user: target
+    });
+  } else {
+    const newUser = {
+      username: cleanUser,
+      password: userPass,
+      fullName: fullName || cleanUser,
+      phone: '',
+      email: userEmail,
+      balance: numCoins * 1000,
+      coins: numCoins,
+      status: status === 'BLOCKED' ? 'BLOCKED' : 'ACTIVE',
+      firstDepositDone: true,
+      createdAt: new Date().toISOString()
+    };
+    users.push(newUser);
+    if (!(await saveCtvUsers(users))) {
+      return res.status(500).json({ ok: false, message: 'Không thể thêm tài khoản CTV!' });
+    }
+    return res.json({
+      ok: true,
+      message: `Đã thêm/khôi phục tài khoản CTV @${cleanUser} thành công!`,
+      user: newUser
+    });
+  }
 });
 
 // 4. Admin lưu cài đặt & bật/tắt chức năng CTV & Bảng giá sỉ

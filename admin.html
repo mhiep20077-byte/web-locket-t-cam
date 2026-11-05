@@ -1339,14 +1339,29 @@
 
       <!-- Card 2: Danh sách tài khoản CTV & Thao tác Cộng/Trừ tiền, Khóa -->
       <div class="panel-card">
-        <div class="panel-title"
-          style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-          <i class="fa-solid fa-users"></i> Danh Sách Tài Khoản CTV Dưới Hệ Thống
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <div class="panel-title"
+              style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i class="fa-solid fa-users"></i> Danh Sách Tài Khoản CTV Dưới Hệ Thống
+            </div>
+            <p style="color: var(--text-sub); font-size: 0.9rem; margin-top: 4px; margin-bottom: 0;">
+              Xem danh sách cộng tác viên, số coin/tiền trong ví, số lượng khách đã kích hoạt. Bạn có thể sửa coin, đổi mật khẩu hoặc xóa tài khoản CTV.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn-cancel"
+              style="padding: 8px 14px; font-size: 13px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: var(--gold-light);"
+              onclick="quickRestoreXuandieu()">
+              <i class="fa-solid fa-rotate-left"></i> Khôi phục @xuandieu09
+            </button>
+            <button type="button" class="btn-save"
+              style="padding: 8px 14px; font-size: 13px; background: rgba(59, 130, 246, 0.25); border: 1px solid rgba(59, 130, 246, 0.5); color: #60A5FA;"
+              onclick="openAddCtvUserModal()">
+              <i class="fa-solid fa-user-plus"></i> + Thêm / Khôi Phục CTV
+            </button>
+          </div>
         </div>
-        <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 16px;">
-          Xem danh sách cộng tác viên, số coin/tiền trong ví, số lượng khách đã kích hoạt. Bạn có thể cộng hoặc trừ
-          tiền, hoặc khóa tài khoản CTV bất cứ lúc nào.
-        </p>
 
         <div class="table-responsive">
           <table>
@@ -2147,6 +2162,53 @@
       <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
         <button type="button" class="btn-cancel" onclick="closeAdjustBalanceModal()">Hủy</button>
         <button type="button" class="btn-save" onclick="executeAdjustBalance()">Lưu Thay Đổi</button>
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- Modal Thêm / Khôi Phục Tài Khoản CTV -->
+  <div class="modal-overlay" id="modal-add-ctv-user"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div
+      style="background: #121622; border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 20px; max-width: 480px; width: 100%; padding: 26px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
+      <h3 style="margin-bottom: 12px; font-size: 1.25rem; color: #fff; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-user-plus" style="color: #60A5FA;"></i> Thêm / Khôi Phục Tài Khoản CTV
+      </h3>
+      <p style="color: var(--text-sub); font-size: 13px; margin-bottom: 16px;">
+        Nếu tài khoản bị xóa nhầm, bạn chỉ cần nhập username để khôi phục lại ngay lập tức!
+      </p>
+
+      <!-- Phím tắt khôi phục nhanh xuandieu09 -->
+      <div style="background: rgba(59, 130, 246, 0.1); border: 1px dashed rgba(59, 130, 246, 0.4); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 12.5px; color: #93C5FD;">Khôi phục nhanh: <b>@xuandieu09</b></span>
+        <button type="button" class="btn-action-sm" onclick="quickFillXuandieu()" style="background: #2563EB; color: #fff; padding: 4px 10px; font-size: 12px; border-radius: 6px; cursor: pointer;">
+          Điền nhanh
+        </button>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label>Tên đăng nhập (Username):</label>
+        <input type="text" id="new-ctv-username" class="form-input" placeholder="Ví dụ: xuandieu09" autocomplete="off">
+      </div>
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label>Email đăng ký:</label>
+        <input type="email" id="new-ctv-email" class="form-input" placeholder="Ví dụ: xuandieu09@gmail.com" autocomplete="off">
+      </div>
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label>Mật khẩu (tối thiểu 6 ký tự gồm chữ và số):</label>
+        <input type="text" id="new-ctv-password" class="form-input" placeholder="Ví dụ: xuandieu123" autocomplete="off">
+      </div>
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label>Số Coin ban đầu:</label>
+        <input type="number" id="new-ctv-coins" class="form-input" placeholder="0" min="0" value="0">
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+        <button type="button" class="btn-cancel" onclick="closeAddCtvUserModal()">Hủy</button>
+        <button type="button" class="btn-save" onclick="executeAddOrRestoreCtv()" style="background: linear-gradient(135deg, #2563EB, #1D4ED8);">
+          <i class="fa-solid fa-check"></i> Thêm / Khôi Phục
+        </button>
       </div>
     </div>
   </div>

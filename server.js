@@ -20,6 +20,7 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const BROWSER_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 // Directories
 const ROOT_DIR = __dirname;
@@ -1272,7 +1273,8 @@ async function executeActivation(order) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': apiKey
+          'x-api-key': apiKey,
+          'User-Agent': BROWSER_USER_AGENT
         },
         body: JSON.stringify({
           user: order.username,
@@ -1671,36 +1673,95 @@ app.all([
   const settings = loadSettings();
   const cucamKey = settings.apiConfig?.cucamApiKey || process.env.LOCKET_SECRET_KEY || '';
   const cucamBase = settings.apiConfig?.cucamApiBase || 'https://locket.2707226.xyz';
+  const kawaiiKey = settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
 
   let resolvedUid = uid;
+  let isVipUser = false;
 
-  // 1. Nếu có username mà chưa có UID -> tra cứu UID từ đơn hàng hoặc API Cụ Cam
-  if (!resolvedUid && username) {
+  // 1. Kiểm tra xem khách có mua gói VIP (49 Filter Camera AI) trong đơn hàng hoặc CTV không
+  if (username) {
     const orders = loadOrders();
-    const foundOrder = orders.find(o => cleanLocketUsername(o.username) === username && o.uid);
-    if (foundOrder && foundOrder.uid) {
-      resolvedUid = foundOrder.uid;
-    } else {
-      try {
-        const checkRes = await fetch(`${cucamBase}/api/uid/check?username=${encodeURIComponent(username)}`, {
-          headers: { 'Authorization': `Bearer ${cucamKey}` }
-        });
-        const cData = await checkRes.json().catch(() => ({}));
-        if (cData?.data?.uid) {
-          resolvedUid = typeof cData.data.uid === 'string' ? cData.data.uid : cData.data.uid.uidString;
-        }
-      } catch (e) {
-        console.warn('[PROFILE] Lỗi tra UID:', e.message);
-      }
+    const foundOrder = orders.find(o => cleanLocketUsername(o.username) === username);
+    if (foundOrder) {
+      if (!resolvedUid && foundOrder.uid) resolvedUid = foundOrder.uid;
+      if (foundOrder.planType === 'vip') isVipUser = true;
+    }
+
+    const ctvCusts = loadCtvCustomers();
+    const foundCtv = ctvCusts.find(c => cleanLocketUsername(c.username) === username);
+    if (foundCtv) {
+      if (!resolvedUid && foundCtv.uid) resolvedUid = foundCtv.uid;
+      if (foundCtv.service === 'filter') isVipUser = true;
     }
   }
 
-  // 2. Nếu có UID -> tải profile cá nhân hoá từ Cụ Cam (/api/profile?uid=...)
+  // 1b. Tra cứu Kawaii userinfo nếu khách có thể là VIP hoặc chưa có UID
+  if (username && (!resolvedUid || isVipUser)) {
+    try {
+      const ctvRes = await fetch(`https://ctv.nodns.vn/api/v1/userinfo?user=${encodeURIComponent(username)}`, {
+        headers: {
+          'x-api-key': kawaiiKey,
+          'User-Agent': BROWSER_USER_AGENT
+        }
+      });
+      const ctvData = await ctvRes.json().catch(() => null);
+      if (ctvRes.ok && ctvData && (ctvData.status === 'success' || ctvData.uid)) {
+        if (!resolvedUid && ctvData.uid) resolvedUid = ctvData.uid;
+        if (ctvData.gold?.has_gold && !isVipUser) {
+          isVipUser = true;
+        }
+      }
+    } catch (e) {
+      console.warn('[PROFILE] Kawaii lookup error:', e.message);
+    }
+  }
+
+  // 1c. Tra cứu Cụ Cam nếu chưa có UID
+  if (!resolvedUid && username) {
+    try {
+      const checkRes = await fetch(`${cucamBase}/api/uid/check?username=${encodeURIComponent(username)}`, {
+        headers: { 'Authorization': `Bearer ${cucamKey}`, 'User-Agent': BROWSER_USER_AGENT }
+      });
+      const cData = await checkRes.json().catch(() => ({}));
+      if (cData?.data?.uid) {
+        resolvedUid = typeof cData.data.uid === 'string' ? cData.data.uid : cData.data.uid.uidString;
+        if (cData?.data?.active) {
+          isVipUser = false; // Thuộc Cụ Cam Gold Thường
+        }
+      }
+    } catch (e) {
+      console.warn('[PROFILE] CuCam lookup error:', e.message);
+    }
+  }
+
+  // 2. NẾU LÀ KHÁCH VIP (KAWAII 49+ FILTER CAMERA AI):
+  // Tải profile DNS chuẩn từ API Kawaii /api/public/dns
+  if (isVipUser) {
+    try {
+      const kwRes = await fetch('https://ctv.nodns.vn/api/public/dns', {
+        headers: {
+          'x-api-key': kawaiiKey,
+          'User-Agent': BROWSER_USER_AGENT
+        }
+      });
+      if (kwRes.ok) {
+        const buffer = personalizeMobileConfig(Buffer.from(await kwRes.arrayBuffer()), username);
+        res.setHeader('Content-Type', 'application/x-apple-aspen-config; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="LocketVIP-${username || 'profile'}.mobileconfig"`);
+        return res.send(buffer);
+      }
+    } catch (e) {
+      console.warn('[PROFILE] Lỗi tải profile Kawaii VIP, fallback to CuCam:', e.message);
+    }
+  }
+
+  // 3. Nếu có UID và không phải VIP -> tải profile cá nhân hoá từ Cụ Cam (/api/profile?uid=...)
   if (resolvedUid) {
     try {
       const resp = await fetch(`${cucamBase}/api/profile?uid=${encodeURIComponent(resolvedUid)}`, {
         headers: {
-          'Authorization': `Bearer ${cucamKey}`
+          'Authorization': `Bearer ${cucamKey}`,
+          'User-Agent': BROWSER_USER_AGENT
         }
       });
       if (resp.ok) {
@@ -1714,10 +1775,13 @@ app.all([
     }
   }
 
-  // 3. Fallback hoặc tải chung: Tải profile DNS chuẩn từ Cụ Cam (https://locket.2707226.xyz/dns)
+  // 4. Fallback hoặc tải chung: Tải profile DNS chuẩn từ Cụ Cam (https://locket.2707226.xyz/dns)
   try {
     const globalRes = await fetch(`${cucamBase}/dns`, {
-      headers: cucamKey ? { 'Authorization': `Bearer ${cucamKey}` } : {}
+      headers: {
+        ...(cucamKey ? { 'Authorization': `Bearer ${cucamKey}` } : {}),
+        'User-Agent': BROWSER_USER_AGENT
+      }
     });
     if (globalRes.ok) {
       const buffer = personalizeMobileConfig(Buffer.from(await globalRes.arrayBuffer()), username);
@@ -1809,7 +1873,7 @@ app.get('/api/frame/gallery', async (req, res) => {
 
   try {
     const resp = await fetch('https://khunganh.nodns.vn/api/v1/frame/gallery', {
-      headers: { 'x-api-key': apiKey }
+      headers: { 'x-api-key': apiKey, 'User-Agent': BROWSER_USER_AGENT }
     });
     const data = await resp.json().catch(() => null);
     if (resp.ok && data && Array.isArray(data.data?.frames)) {
@@ -1905,7 +1969,7 @@ app.get('/api/frame/status', async (req, res) => {
   const apiKey = settings.apiConfig?.frameApiKey || settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
   try {
     const resp = await fetch(`https://khunganh.nodns.vn/api/v1/frame?identifier=${encodeURIComponent(identifier)}`, {
-      headers: { 'x-api-key': apiKey }
+      headers: { 'x-api-key': apiKey, 'User-Agent': BROWSER_USER_AGENT }
     });
     const data = await resp.json().catch(() => null);
     if (!resp.ok || !data) {
@@ -2105,7 +2169,7 @@ app.get('/api/admin/frames/data', requireAdmin, async (req, res) => {
 
   try {
     const resp = await fetch('https://khunganh.nodns.vn/api/v1/frame/gallery', {
-      headers: { 'x-api-key': apiKey }
+      headers: { 'x-api-key': apiKey, 'User-Agent': BROWSER_USER_AGENT }
     });
     const data = await resp.json().catch(() => null);
     if (resp.ok && data && Array.isArray(data.data?.frames)) {
@@ -2500,7 +2564,10 @@ app.get('/api/admin/overview', requireAdmin, async (req, res) => {
   let kawaiiInfo = null;
   try {
     const kRes = await fetch('https://ctv.nodns.vn/api/v1/ctv/me', {
-      headers: { 'x-api-key': settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '' }
+      headers: {
+        'x-api-key': settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '',
+        'User-Agent': BROWSER_USER_AGENT
+      }
     });
     if (kRes.ok) {
       const kData = await kRes.json();
@@ -2822,7 +2889,7 @@ app.post('/api/admin/test-kawaii', requireAdmin, async (req, res) => {
 
   try {
     const kRes = await fetch('https://ctv.nodns.vn/api/v1/ctv/me', {
-      headers: { 'x-api-key': keyToTest }
+      headers: { 'x-api-key': keyToTest, 'User-Agent': BROWSER_USER_AGENT }
     });
 
     const kData = await kRes.json();
@@ -3220,7 +3287,7 @@ app.get('/api/ctv/lookup-user', requireCtvActive, async (req, res) => {
   try {
     const ctvUrl = `https://ctv.nodns.vn/api/v1/userinfo?user=${encodeURIComponent(username)}`;
     const ctvRes = await fetch(ctvUrl, {
-      headers: { 'x-api-key': kawaiiKey }
+      headers: { 'x-api-key': kawaiiKey, 'User-Agent': BROWSER_USER_AGENT }
     });
     const ctvData = await ctvRes.json().catch(() => null);
     if (ctvRes.ok && ctvData && (ctvData.status === 'success' || ctvData.uid)) {
@@ -3312,61 +3379,152 @@ app.get('/api/ctv/dns-lookup', requireCtvActive, async (req, res) => {
   let hasGold = false;
   let goldExpiry = null;
   let source = 'unknown';
+  let packageType = 'REGULAR';
+  let packageName = 'Locket Gold Thường';
 
-  // 1. Kiểm tra nếu là UID 28 ký tự hoặc tra qua Kawaii
-  try {
-    const ctvUrl = `https://ctv.nodns.vn/api/v1/userinfo?user=${encodeURIComponent(cleanId)}`;
-    const ctvRes = await fetch(ctvUrl, { headers: { 'x-api-key': kawaiiKey } });
-    const ctvData = await ctvRes.json().catch(() => null);
-    if (ctvRes.ok && ctvData && (ctvData.status === 'success' || ctvData.uid)) {
-      resolvedUid = ctvData.uid || '';
-      resolvedUser = ctvData.username || cleanId;
-      fullName = ctvData.full_name || resolvedUser;
-      avatarUrl = ctvData.profile_picture_url || null;
-      hasGold = ctvData.gold?.has_gold || false;
-      goldExpiry = ctvData.gold?.expiry_date || null;
-      source = 'KAWAII';
-    }
-  } catch (e) { }
-
-  // 2. Tra qua Cụ Cam nếu chưa có UID
-  if (!resolvedUid && cucamKey) {
-    try {
-      const ccRes = await fetch(`${cucamBase}/api/uid/check?username=${encodeURIComponent(cleanId)}`, {
-        headers: { 'Authorization': `Bearer ${cucamKey}` }
-      });
-      const ccData = await ccRes.json().catch(() => null);
-      if (ccRes.ok && ccData?.data?.uid) {
-        resolvedUid = typeof ccData.data.uid === 'string' ? ccData.data.uid : ccData.data.uid.uidString;
-        resolvedUser = ccData.data.username || cleanId;
-        fullName = ccData.data.username || cleanId;
-        avatarUrl = ccData.data.avatarUrl || null;
-        hasGold = ccData.data.active || false;
-        goldExpiry = ccData.data.expiresAt || null;
-        source = 'CUCAM';
-      }
-    } catch (e) { }
-  }
-
-  // 3. Tra trong danh sách đơn hàng & khách hàng CTV đã lưu
+  // 1. Kiểm tra trong danh sách khách hàng CTV đã lưu (ưu tiên cao nhất)
   const customers = loadCtvCustomers();
   const foundCust = customers.find(c =>
     (c.username && cleanLocketUsername(c.username) === cleanId) ||
     (c.uid && c.uid.toLowerCase() === cleanId.toLowerCase())
   );
   if (foundCust) {
-    if (!resolvedUid && foundCust.uid) resolvedUid = foundCust.uid;
-    if (foundCust.avatarUrl && !avatarUrl) avatarUrl = foundCust.avatarUrl;
-    if (foundCust.fullName && fullName === cleanId) fullName = foundCust.fullName;
+    if (foundCust.uid) resolvedUid = foundCust.uid;
+    if (foundCust.username) resolvedUser = cleanLocketUsername(foundCust.username);
+    if (foundCust.fullName) fullName = foundCust.fullName;
+    if (foundCust.avatarUrl) avatarUrl = foundCust.avatarUrl;
     if (foundCust.active) hasGold = true;
     if (foundCust.expiresAt) goldExpiry = foundCust.expiresAt;
+    if (foundCust.service === 'filter') {
+      packageType = 'VIP';
+      packageName = foundCust.planName || 'Locket VIP (Filter Camera AI)';
+      source = 'CTV_CUSTOMER_VIP';
+    } else if (foundCust.service === 'spotify') {
+      packageType = 'SPOTIFY';
+      packageName = foundCust.planName || 'Spotify VIP';
+      source = 'CTV_CUSTOMER_SPOTIFY';
+    } else {
+      packageType = 'REGULAR';
+      packageName = foundCust.planName || 'Locket Gold Thường';
+      source = 'CTV_CUSTOMER_REGULAR';
+    }
   }
 
-  // 4. Tra trạng thái khung ảnh widget
+  // 2. Kiểm tra trong danh sách đơn hàng đã mua
+  const orders = loadOrders();
+  const foundOrder = orders.find(o =>
+    (o.username && cleanLocketUsername(o.username) === cleanId) ||
+    (o.uid && o.uid.toLowerCase() === cleanId.toLowerCase())
+  );
+  if (foundOrder) {
+    if (!resolvedUid && foundOrder.uid) resolvedUid = foundOrder.uid;
+    if (foundOrder.username && resolvedUser === cleanId) resolvedUser = cleanLocketUsername(foundOrder.username);
+    if (foundOrder.status === 'ACTIVATED') hasGold = true;
+    if (foundOrder.expiresAt) goldExpiry = foundOrder.expiresAt;
+    if (foundOrder.planType === 'vip') {
+      packageType = 'VIP';
+      packageName = foundOrder.planName || 'Locket VIP (Filter Camera AI)';
+    } else if (foundOrder.service === 'spotify' || foundOrder.planType === 'spotify') {
+      packageType = 'SPOTIFY';
+      packageName = foundOrder.planName || 'Spotify VIP';
+    } else if (foundOrder.planType === 'regular') {
+      packageType = 'REGULAR';
+      packageName = foundOrder.planName || 'Locket Gold Thường';
+    }
+  }
+
+  // 3. Tra cứu qua API Cụ Cam (Ưu tiên xác định gói Thường/Spotify nếu có trên Cụ Cam)
+  let ccData = null;
+  if (cucamKey) {
+    try {
+      const ccRes = await fetch(`${cucamBase}/api/uid/check?username=${encodeURIComponent(cleanId)}`, {
+        headers: {
+          'Authorization': `Bearer ${cucamKey}`,
+          'User-Agent': BROWSER_USER_AGENT
+        }
+      });
+      ccData = await ccRes.json().catch(() => null);
+      if (ccRes.ok && ccData?.data?.uid) {
+        resolvedUid = typeof ccData.data.uid === 'string' ? ccData.data.uid : ccData.data.uid.uidString;
+        resolvedUser = ccData.data.username || resolvedUser;
+        if (fullName === cleanId) fullName = ccData.data.username || cleanId;
+        if (!avatarUrl && ccData.data.avatarUrl) avatarUrl = ccData.data.avatarUrl;
+        if (ccData.data.active) hasGold = true;
+        if (ccData.data.expiresAt) goldExpiry = ccData.data.expiresAt;
+
+        // Nếu Cụ Cam xác nhận gói
+        if (ccData.data.package?.name) {
+          const pkgName = ccData.data.package.name;
+          if (pkgName.toLowerCase().includes('spotify')) {
+            packageType = 'SPOTIFY';
+            packageName = pkgName;
+          } else {
+            packageType = 'REGULAR';
+            packageName = pkgName;
+          }
+          source = 'CUCAM';
+        }
+      }
+    } catch (e) {
+      console.warn('[CTV DNS] CuCam check error:', e.message);
+    }
+  }
+
+  // 4. Tra cứu qua Kawaii API (đảm bảo kèm User-Agent để không bị Cloudflare 403)
+  let ctvData = null;
+  try {
+    const ctvUrl = `https://ctv.nodns.vn/api/v1/userinfo?user=${encodeURIComponent(cleanId)}`;
+    const ctvRes = await fetch(ctvUrl, {
+      headers: {
+        'x-api-key': kawaiiKey,
+        'User-Agent': BROWSER_USER_AGENT
+      }
+    });
+    ctvData = await ctvRes.json().catch(() => null);
+    if (ctvRes.ok && ctvData && (ctvData.status === 'success' || ctvData.uid)) {
+      if (!resolvedUid && ctvData.uid) resolvedUid = ctvData.uid;
+      resolvedUser = ctvData.username || resolvedUser;
+      if (ctvData.full_name && (fullName === cleanId || !fullName)) fullName = ctvData.full_name;
+      if (!avatarUrl && ctvData.profile_picture_url) avatarUrl = ctvData.profile_picture_url;
+      if (ctvData.gold?.has_gold) hasGold = true;
+      if (ctvData.gold?.expiry_date) goldExpiry = ctvData.gold.expiry_date;
+
+      // Nếu không có trên Cụ Cam mà có trên Kawaii -> đây là khách VIP
+      if (source !== 'CUCAM' && packageType !== 'SPOTIFY' && !foundCust && !foundOrder) {
+        if (ctvData.gold?.has_gold) {
+          packageType = 'VIP';
+          packageName = 'Locket VIP (Filter Camera AI)';
+          source = 'KAWAII_VIP';
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[CTV DNS] Kawaii userinfo error:', e.message);
+  }
+
+  // 5. Tra cứu link Profile từ Kawaii Profile API (nếu có)
+  let kawaiiProfileUrl = '';
+  try {
+    const kpRes = await fetch(`https://ctv.nodns.vn/api/v1/profile?user=${encodeURIComponent(resolvedUser)}`, {
+      headers: {
+        'x-api-key': kawaiiKey,
+        'User-Agent': BROWSER_USER_AGENT
+      }
+    });
+    const kpData = await kpRes.json().catch(() => null);
+    if (kpRes.ok && kpData?.status === 'success' && kpData?.data?.profile_url) {
+      kawaiiProfileUrl = kpData.data.profile_url;
+    }
+  } catch (e) {}
+
+  // 6. Tra trạng thái khung ảnh widget
   let frameInfo = null;
   try {
     const frameResp = await fetch(`https://khunganh.nodns.vn/api/v1/frame?identifier=${encodeURIComponent(resolvedUid || resolvedUser)}`, {
-      headers: { 'x-api-key': kawaiiKey }
+      headers: {
+        'x-api-key': kawaiiKey,
+        'User-Agent': BROWSER_USER_AGENT
+      }
     });
     const fData = await frameResp.json().catch(() => null);
     if (fData && fData.status === 'success' && fData.data) {
@@ -3375,15 +3533,53 @@ app.get('/api/ctv/dns-lookup', requireCtvActive, async (req, res) => {
     }
   } catch (e) { }
 
+  // 7. Xây dựng URLs cho các loại DNS
   const regularDnsUrl = settings.dnsLinkRegular || 'https://locket.2707226.xyz/dns';
   const regularProfileUrl = resolvedUid ? `${cucamBase}/api/profile?uid=${encodeURIComponent(resolvedUid)}` : regularDnsUrl;
-  const vipDnsUrl = settings.dnsLinkVip || 'https://ctv.nodns.vn/cai-dns';
+
+  // Link VIP: thay thế {username} chuẩn xác, fallback về Kawaii Profile URL hoặc cài DNS trực tiếp
+  let vipDnsUrl = getConfiguredDnsUrl(
+    resolvedUser,
+    settings.dnsLinkVip,
+    kawaiiProfileUrl || 'https://ctv.nodns.vn/cai-dns'
+  );
+
+  const spotifyDnsUrl = 'http://103.101.161.228:8082/spotify-mitm.mobileconfig';
   const customProfileUrl = foundCust?.mobileconfigUrl || '';
 
-  // Tin nhắn mẫu hướng dẫn chuẩn 4 bước gửi khách
-  const messageTemplate = `👑 HƯỚNG DẪN CÀI ĐẶT LOCKET CHO BẠN:
+  // 8. Tin nhắn mẫu gửi khách khớp chuẩn 100% với gói đã mua
+  let messageTemplate = '';
+  if (packageType === 'VIP') {
+    messageTemplate = `👑 HƯỚNG DẪN CÀI ĐẶT LOCKET VIP (49+ FILTER CAMERA AI):
 👤 Tài khoản: @${resolvedUser}${resolvedUid ? ` (UID: ${resolvedUid})` : ''}
-⚡ Trạng thái: ${hasGold ? '✅ Đã kích hoạt' : '⏳ Cần tải DNS cấu hình'}
+⚡ Gói kích hoạt: ${packageName}
+✨ Trạng thái: ${hasGold ? '✅ Đã kích hoạt VIP' : '⏳ Cần tải DNS cấu hình'}
+🌐 Link tải cấu hình DNS VIP (Mở trực tiếp trên Safari iPhone):
+${vipDnsUrl}
+
+📋 4 BƯỚC CÀI ĐẶT TRÊN SAFARI (BẮT BUỘC):
+1. Dán link trên vào Safari -> Bấm 'Cho phép' khi hỏi tải tệp cấu hình.
+2. Vào Cài đặt -> Cài đặt chung -> Quản lý VPN & Thiết bị -> Chọn Locket VIP -> Bấm Cài đặt -> Nhập mật khẩu iPhone -> Xác nhận.
+3. Vào Cài đặt chung -> Giới thiệu -> Cài đặt tin cậy chứng chỉ -> BẬT CÔNG TẮC Locket VIP -> Chọn Tiếp tục.
+4. Tắt hẳn app Locket (vuốt tắt trong đa nhiệm) rồi mở lại -> Thấy 49+ Filter Camera AI & Locket Gold là thành công!`;
+  } else if (packageType === 'SPOTIFY') {
+    messageTemplate = `🎵 HƯỚNG DẪN CÀI ĐẶT SPOTIFY VIP:
+👤 Tài khoản: @${resolvedUser}
+⚡ Gói kích hoạt: ${packageName}
+✨ Trạng thái: ${hasGold ? '✅ Đã kích hoạt' : '⏳ Cần tải DNS cấu hình'}
+🌐 Link tải cấu hình Spotify (Mở trực tiếp trên Safari iPhone):
+${spotifyDnsUrl}
+
+📋 CÁC BƯỚC CÀI ĐẶT TRÊN SAFARI:
+1. Dán link trên vào Safari -> Bấm 'Cho phép' khi hỏi tải tệp cấu hình.
+2. Vào Cài đặt -> Cài đặt chung -> Quản lý VPN & Thiết bị -> Chọn Spotify VIP -> Cài đặt.
+3. Vào Cài đặt chung -> Giới thiệu -> Cài đặt tin cậy chứng chỉ -> BẬT CÔNG TẮC tin cậy.
+4. Mở Spotify và tận hưởng âm nhạc không quảng cáo!`;
+  } else {
+    messageTemplate = `⚡ HƯỚNG DẪN CÀI ĐẶT LOCKET GOLD (CỤ CAM):
+👤 Tài khoản: @${resolvedUser}${resolvedUid ? ` (UID: ${resolvedUid})` : ''}
+⚡ Gói kích hoạt: ${packageName}
+✨ Trạng thái: ${hasGold ? '✅ Đã kích hoạt Gold' : '⏳ Cần tải DNS cấu hình'}
 🌐 Link tải cấu hình DNS (Mở trực tiếp trên Safari iPhone):
 ${regularProfileUrl}
 
@@ -3392,6 +3588,7 @@ ${regularProfileUrl}
 2. Vào Cài đặt -> Cài đặt chung -> Quản lý VPN & Thiết bị -> Chọn LocketGold -> Bấm Cài đặt -> Nhập mật khẩu iPhone -> Xác nhận.
 3. Vào Cài đặt chung -> Giới thiệu -> Cài đặt tin cậy chứng chỉ -> BẬT CÔNG TẮC LocketGold -> Chọn Tiếp tục.
 4. Tắt hẳn app Locket (vuốt tắt trong đa nhiệm) rồi mở lại -> Vào Hồ sơ thấy huy hiệu Gold là thành công!`;
+  }
 
   return res.json({
     ok: true,
@@ -3402,13 +3599,15 @@ ${regularProfileUrl}
       avatarUrl: avatarUrl,
       hasGold: hasGold,
       goldExpiry: goldExpiry,
+      packageType: packageType,
+      packageName: packageName,
       source: source,
       dnsLinks: {
         regularDns: regularDnsUrl,
         regularProfile: regularProfileUrl,
         vipDns: vipDnsUrl,
         customProfile: customProfileUrl,
-        spotifyDns: 'http://103.101.161.228:8082/spotify-mitm.mobileconfig'
+        spotifyDns: spotifyDnsUrl
       },
       frame: frameInfo,
       messageTemplate: messageTemplate
@@ -3465,7 +3664,11 @@ app.post('/api/ctv/activate', requireCtvActive, async (req, res) => {
       const pkg = planId === 'vip_lifetime' ? 'filter_lifetime' : (planId === 'vip_2y' ? 'filter_2year' : 'filter_1year');
       const kwRes = await fetch('https://ctv.nodns.vn/api/v1/ctv/gold', {
         method: 'POST',
-        headers: { 'x-api-key': kawaiiKey, 'Content-Type': 'application/json' },
+        headers: {
+          'x-api-key': kawaiiKey,
+          'Content-Type': 'application/json',
+          'User-Agent': BROWSER_USER_AGENT
+        },
         body: JSON.stringify({ user: cleanUser, isFilter: true, package: pkg })
       });
       const kwData = await kwRes.json().catch(() => ({}));

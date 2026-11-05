@@ -3695,6 +3695,35 @@ app.post('/api/admin/ctv/delete', requireAdmin, async (req, res) => {
   });
 });
 
+// 3c. Admin đổi mật khẩu tài khoản CTV
+app.post('/api/admin/ctv/reset-password', requireAdmin, async (req, res) => {
+  const { username, newPassword } = req.body || {};
+  if (!username || !newPassword) {
+    return res.status(400).json({ ok: false, message: 'Vui lòng cung cấp username và mật khẩu mới!' });
+  }
+
+  const cleanPass = String(newPassword).trim();
+  if (cleanPass.length < 6 || !/[a-zA-Z]/.test(cleanPass) || !/[0-9]/.test(cleanPass)) {
+    return res.status(400).json({ ok: false, message: 'Mật khẩu mới phải từ 6 ký tự trở lên và bao gồm cả chữ cái và số!' });
+  }
+
+  const users = loadCtvUsers();
+  const target = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+  if (!target) {
+    return res.status(404).json({ ok: false, message: 'Không tìm thấy tài khoản CTV!' });
+  }
+
+  target.password = cleanPass;
+  if (!(await saveCtvUsers(users))) {
+    return res.status(500).json({ ok: false, message: 'Không thể lưu mật khẩu CTV mới!' });
+  }
+
+  return res.json({
+    ok: true,
+    message: `Đã đổi mật khẩu cho CTV @${username} thành công!`
+  });
+});
+
 // 4. Admin lưu cài đặt & bật/tắt chức năng CTV & Bảng giá sỉ
 app.post('/api/admin/ctv/settings', requireAdmin, async (req, res) => {
   const { allowRegister, tabLocket, tabVipFilter, tabSpotify, wholesalePlans, depositPrefix } = req.body || {};

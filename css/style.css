@@ -303,6 +303,10 @@ body {
   transform: translateY(-1px);
 }
 
+.chip-admin {
+  display: none !important;
+}
+
 /* 1. Cổng CTV */
 .chip-ctv {
   background: #F0F7FF;

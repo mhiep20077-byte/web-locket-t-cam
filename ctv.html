@@ -557,18 +557,78 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 16px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .ctv-auth-card,
+    .deposit-modal-card {
+      width: 100%;
+      background: #121622;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: auto;
     }
 
     .ctv-auth-card {
-      width: 100%;
       max-width: 440px;
-      background: #121622;
       border: 1px solid rgba(245, 158, 11, 0.3);
-      border-radius: 24px;
       padding: 32px 28px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-      position: relative;
+    }
+
+    /* Thanh cuộn lướt lên xuống mượt mà (Ảnh 2) */
+    .deposit-modal-card::-webkit-scrollbar,
+    .ctv-auth-card::-webkit-scrollbar {
+      width: 6px;
+    }
+    .deposit-modal-card::-webkit-scrollbar-track,
+    .ctv-auth-card::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 999px;
+    }
+    .deposit-modal-card::-webkit-scrollbar-thumb,
+    .ctv-auth-card::-webkit-scrollbar-thumb {
+      background: rgba(245, 158, 11, 0.5);
+      border-radius: 999px;
+    }
+    .deposit-modal-card::-webkit-scrollbar-thumb:hover,
+    .ctv-auth-card::-webkit-scrollbar-thumb:hover {
+      background: rgba(245, 158, 11, 0.85);
+    }
+
+    /* Nút hiện / ẩn mật khẩu */
+    .btn-toggle-pwd {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: #94A3B8;
+      cursor: pointer;
+      font-size: 15px;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+    .btn-toggle-pwd:hover {
+      color: #F59E0B;
+    }
+
+    /* Khối Cảnh Báo Hạn Nạp 48H Kích Hoạt (Khớp ảnh 1) */
+    .activation-warning-card {
+      background: #FFF1F2;
+      border: 1.5px solid #FECDD3;
+      border-radius: 16px;
+      padding: 16px 14px;
+      margin-bottom: 16px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(244, 63, 94, 0.12);
     }
 
     .auth-tabs {
@@ -599,14 +659,9 @@
 
     /* Modal Deposit VietQR */
     .deposit-modal-card {
-      width: 100%;
       max-width: 480px;
-      background: #121622;
       border: 1px solid rgba(245, 158, 11, 0.35);
-      border-radius: 24px;
       padding: 28px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-      position: relative;
     }
 
     .modal-close-btn {
@@ -835,8 +890,14 @@
         </div>
         <div class="form-group-ctv">
           <label>Mật Khẩu:</label>
-          <input type="password" id="login-password" class="ctv-input" placeholder="Nhập mật khẩu..." required
-            autocomplete="current-password">
+          <div style="position: relative; display: flex; align-items: center;">
+            <input type="password" id="login-password" class="ctv-input" placeholder="Nhập mật khẩu..." required
+              autocomplete="current-password" style="padding-right: 42px;">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('login-password', this)"
+              title="Hiện / Ẩn mật khẩu">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
         </div>
         <button type="submit" class="btn-activate-main" style="width: 100%; justify-content: center; margin-top: 10px;">
           <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập Hệ Thống
@@ -850,19 +911,34 @@
           <input type="text" id="reg-username" class="ctv-input" placeholder="Ví dụ: ctv_kienviet" required>
         </div>
         <div class="form-group-ctv">
-          <label>Email:</label>
-          <input type="email" id="reg-email" class="ctv-input" placeholder="name@example.com" required
+          <label>Email Hợp Lệ:</label>
+          <input type="email" id="reg-email" class="ctv-input" placeholder="name@example.com (VD: yourname@gmail.com)" required
             autocomplete="email">
         </div>
         <div class="form-group-ctv">
-          <label>Mật Khẩu:</label>
-          <input type="password" id="reg-password" class="ctv-input" placeholder="Nhập mật khẩu..." required
-            autocomplete="new-password">
+          <label>Mật Khẩu (Tối thiểu 6 ký tự, gồm cả chữ và số):</label>
+          <div style="position: relative; display: flex; align-items: center;">
+            <input type="password" id="reg-password" class="ctv-input" placeholder="Gồm chữ và số (VD: pass123)..." required
+              autocomplete="new-password" style="padding-right: 42px;">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('reg-password', this)"
+              title="Hiện / Ẩn mật khẩu">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          <small style="color: var(--text-sub); font-size: 11.5px; display: block; margin-top: 5px; text-align: left;">
+            <i class="fa-solid fa-shield-halved" style="color: var(--gold-primary);"></i> Mật khẩu bắt buộc có cả chữ cái và số
+          </small>
         </div>
         <div class="form-group-ctv">
           <label>Xác Nhận Mật Khẩu:</label>
-          <input type="password" id="reg-confirm-password" class="ctv-input" placeholder="Nhập lại mật khẩu..." required
-            autocomplete="new-password">
+          <div style="position: relative; display: flex; align-items: center;">
+            <input type="password" id="reg-confirm-password" class="ctv-input" placeholder="Nhập lại mật khẩu..." required
+              autocomplete="new-password" style="padding-right: 42px;">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('reg-confirm-password', this)"
+              title="Hiện / Ẩn mật khẩu">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
         </div>
         <button type="submit" class="btn-activate-main" style="width: 100%; justify-content: center; margin-top: 10px;">
           <i class="fa-solid fa-user-plus"></i> Đăng Ký Tài Khoản CTV
@@ -888,9 +964,33 @@
         Chào mừng <b id="act-user-badge" style="color: #F8FAFC;">@ctv</b>! Để hoàn tất đăng ký và mở khóa toàn bộ quyền hạn Cổng CTV, bạn cần nạp kích hoạt lần đầu tối thiểu <b style="color: #F59E0B; font-size: 15px;">150.000đ</b> vào ví.
       </p>
 
-      <div style="background: rgba(245, 158, 11, 0.1); border: 1px dashed rgba(245, 158, 11, 0.4); border-radius: 14px; padding: 12px 14px; margin-bottom: 18px; font-size: 13px; text-align: left; color: #FDE68A; line-height: 1.5;">
+      <div style="background: rgba(245, 158, 11, 0.1); border: 1px dashed rgba(245, 158, 11, 0.4); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; text-align: left; color: #FDE68A; line-height: 1.5;">
         <i class="fa-solid fa-circle-check" style="color: #10B981; margin-right: 6px;"></i>
         <b>Cam kết 100% số dư:</b> Toàn bộ <b style="color: #fff;">150.000đ (+150 Coin)</b> sẽ được cộng ngay vào ví của bạn để kích hoạt gói Locket VIP cho khách hàng. Không mất phí đăng ký hay phí duy trì!
+      </div>
+
+      <!-- CẢNH BÁO QUAN TRỌNG: HẠN NẠP KÍCH HOẠT TÀI KHOẢN (ẢNH 1) -->
+      <div class="activation-warning-card">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px;">
+          <span style="font-size: 26px; line-height: 1;">⚠️</span>
+          <h4 style="color: #9F1239; font-family: var(--font-heading); font-size: 1.12rem; font-weight: 900; line-height: 1.35; margin: 0; text-transform: uppercase;">
+            CẢNH BÁO QUAN TRỌNG: HẠN NẠP KÍCH HOẠT TÀI KHOẢN
+          </h4>
+        </div>
+        <p style="color: #881337; font-size: 13.5px; line-height: 1.5; margin: 0 0 10px 0; font-weight: 700;">
+          Tài khoản mới tạo <span style="text-decoration: underline; text-underline-offset: 3px;">bắt buộc phải nạp tiền lần đầu trong vòng 2 ngày (48 giờ)</span> kể từ lúc đăng ký.
+        </p>
+
+        <div style="border: 1.5px dashed #F43F5E; background: rgba(255, 255, 255, 0.7); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; text-align: left; margin-bottom: 8px;">
+          <i class="fa-solid fa-clock-rotate-left" style="color: #BE123C; font-size: 24px; flex-shrink: 0;"></i>
+          <div style="color: #881337; font-size: 13px; line-height: 1.45; font-weight: 700;">
+            Sau 48 giờ nếu chưa nạp kích hoạt, hệ thống sẽ <b style="color: #9F1239;">TỰ ĐỘNG XÓA VĨNH VIỄN</b> tài khoản! <span id="act-countdown-timer" style="color: #BE123C; font-weight: 900;">(Thời gian còn lại: ~48 giờ)</span>
+          </div>
+        </div>
+
+        <div style="color: #9F1239; font-size: 12px; font-style: italic; font-weight: 700;">
+          * Lưu ý này sẽ tự động biến mất hoàn toàn ngay sau khi bạn nạp tiền thành công lần đầu.
+        </div>
       </div>
 
       <!-- QR Box & Bank Details -->

@@ -386,7 +386,25 @@ function saveOrders(orders) {
 }
 
 function loadCtvUsers() {
-  return loadCollection('ctv_users', CTV_USERS_FILE, []);
+  const users = loadCollection('ctv_users', CTV_USERS_FILE, []);
+  const now = Date.now();
+  const FORTY_EIGHT_HOURS = 48 * 60 * 60 * 1000;
+  let changed = false;
+  const validUsers = users.filter(u => {
+    if ((u.status === 'PENDING_ACTIVATION' || u.firstDepositDone === false) && (u.balance || 0) === 0 && u.createdAt) {
+      const age = now - new Date(u.createdAt).getTime();
+      if (age > FORTY_EIGHT_HOURS) {
+        console.log(`[CTV PURGE] 🗑️ Đã tự động xóa vĩnh viễn tài khoản CTV quá 48h chưa kích hoạt: @${u.username} (${u.email})`);
+        changed = true;
+        return false;
+      }
+    }
+    return true;
+  });
+  if (changed) {
+    saveCtvUsers(validUsers).catch(e => console.error('Lỗi lưu sau khi dọn dẹp CTV hết hạn:', e));
+  }
+  return validUsers;
 }
 
 function saveCtvUsers(users) {
@@ -2914,12 +2932,19 @@ app.post('/api/ctv/register', async (req, res) => {
   if (!cleanUser || cleanUser.length < 3) {
     return res.status(400).json({ ok: false, message: 'Tên đăng nhập phải từ 3 ký tự trở lên (không dấu)!' });
   }
-  if (!password || password.length < 3) {
-    return res.status(400).json({ ok: false, message: 'Mật khẩu phải từ 3 ký tự trở lên!' });
-  }
   const email = String(rawEmail || '').trim().toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return res.status(400).json({ ok: false, message: 'Vui lòng nhập email hợp lệ!' });
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!email || !emailRegex.test(email)) {
+    return res.status(400).json({ ok: false, message: 'Vui lòng nhập đúng địa chỉ email hợp lệ (ví dụ: yourname@gmail.com)!' });
+  }
+
+  const hasLetter = /[a-zA-Z]/.test(password || '');
+  const hasDigit = /[0-9]/.test(password || '');
+  if (!password || password.length < 6 || !hasLetter || !hasDigit) {
+    return res.status(400).json({
+      ok: false,
+      message: 'Mật khẩu phải từ 6 ký tự trở lên và bao gồm cả chữ cái và chữ số (ví dụ: Matkhau123)!'
+    });
   }
 
   const users = loadCtvUsers();

@@ -737,6 +737,19 @@ function requireCtv(req, res, next) {
   next();
 }
 
+function requireCtvActive(req, res, next) {
+  requireCtv(req, res, () => {
+    if (req.ctvUser.status === 'PENDING_ACTIVATION' || req.ctvUser.firstDepositDone === false) {
+      return res.status(403).json({
+        ok: false,
+        requireActivation: true,
+        message: 'Bạn cần nạp tối thiểu 150.000đ để kích hoạt tài khoản CTV trước khi sử dụng!'
+      });
+    }
+    next();
+  });
+}
+
 // ============================================================
 // 1. PUBLIC CONFIG API
 // ============================================================
@@ -1338,6 +1351,17 @@ async function processIncomingTransaction(tx) {
     if (user) {
       user.balance = (user.balance || 0) + matchedDeposit.amount;
       user.coins = Math.floor(user.balance / 1000);
+
+      // Tự động kích hoạt nếu là lần nạp đầu hoặc đang chờ kích hoạt và nạp >= 150.000đ
+      if (user.firstDepositDone === false || user.status === 'PENDING_ACTIVATION') {
+        if (matchedDeposit.amount >= 150000 || user.balance >= 150000) {
+          user.firstDepositDone = true;
+          user.status = 'ACTIVE';
+          user.activatedAt = new Date().toISOString();
+          console.log(`[WEBHOOK] 🎉 Kích hoạt thành công tài khoản CTV @${user.username} với lần nạp đầu ${matchedDeposit.amount.toLocaleString('vi-VN')}đ!`);
+        }
+      }
+
       if (!(await saveCtvUsers(users))) throw new Error('Không thể cập nhật số dư CTV sau thanh toán.');
       console.log(`[WEBHOOK] 💰 Đã tự động cộng +${matchedDeposit.amount.toLocaleString('vi-VN')}đ (+${matchedDeposit.coins} Coins) cho CTV @${user.username}!`);
     }
@@ -2914,7 +2938,8 @@ app.post('/api/ctv/register', async (req, res) => {
     phone: '',
     balance: 0,
     coins: 0,
-    status: 'ACTIVE',
+    status: 'PENDING_ACTIVATION',
+    firstDepositDone: false,
     createdAt: new Date().toISOString()
   };
 
@@ -2928,14 +2953,17 @@ app.post('/api/ctv/register', async (req, res) => {
 
   return res.json({
     ok: true,
-    message: 'Đăng ký tài khoản CTV thành công!',
+    message: 'Đăng ký tài khoản CTV thành công! Vui lòng nạp tối thiểu 150.000đ để kích hoạt tài khoản.',
     token: token,
+    requireActivation: true,
     user: {
       username: newCtv.username,
       email: newCtv.email,
       fullName: newCtv.fullName,
       balance: newCtv.balance,
-      coins: newCtv.coins
+      coins: newCtv.coins,
+      status: newCtv.status,
+      firstDepositDone: false
     }
   });
 });
@@ -2961,16 +2989,22 @@ app.post('/api/ctv/login', (req, res) => {
   const token = 'ctv_tok_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
   activeCtvTokens.set(token, user.username);
 
+  const isActivated = user.firstDepositDone !== false && user.status !== 'PENDING_ACTIVATION';
+
   return res.json({
     ok: true,
     message: 'Đăng nhập thành công!',
     token: token,
+    requireActivation: !isActivated,
     user: {
       username: user.username,
-      fullName: user.fullName,
-      phone: user.phone,
+      email: user.email || '',
+      fullName: user.fullName || user.username,
+      phone: user.phone || '',
       balance: user.balance || 0,
-      coins: user.coins || 0
+      coins: user.coins || 0,
+      status: user.status || 'ACTIVE',
+      firstDepositDone: user.firstDepositDone !== false
     }
   });
 });
@@ -2989,14 +3023,20 @@ app.get('/api/ctv/me', requireCtv, (req, res) => {
   ctvSettings.dnsLinkRegular = settings.dnsLinkRegular || 'https://locket.2707226.xyz/dns';
   ctvSettings.dnsLinkVip = settings.dnsLinkVip || 'https://locket.2707226.xyz/dns';
 
+  const isActivated = req.ctvUser.firstDepositDone !== false && req.ctvUser.status !== 'PENDING_ACTIVATION';
+
   return res.json({
     ok: true,
+    requireActivation: !isActivated,
     user: {
       username: req.ctvUser.username,
-      fullName: req.ctvUser.fullName,
-      phone: req.ctvUser.phone,
+      email: req.ctvUser.email || '',
+      fullName: req.ctvUser.fullName || req.ctvUser.username,
+      phone: req.ctvUser.phone || '',
       balance: req.ctvUser.balance || 0,
-      coins: req.ctvUser.coins || Math.floor((req.ctvUser.balance || 0) / 1000)
+      coins: req.ctvUser.coins || Math.floor((req.ctvUser.balance || 0) / 1000),
+      status: req.ctvUser.status || 'ACTIVE',
+      firstDepositDone: req.ctvUser.firstDepositDone !== false
     },
     settings: ctvSettings
   });
@@ -3006,8 +3046,16 @@ app.get('/api/ctv/me', requireCtv, (req, res) => {
 app.post('/api/ctv/deposit/create', requireCtv, async (req, res) => {
   const { amount } = req.body || {};
   const numAmount = parseInt(amount, 10);
-  if (!numAmount || numAmount < 60000) {
-    return res.status(400).json({ ok: false, message: 'Số tiền nạp tối thiểu là 60.000đ (60k)!' });
+
+  const isActivated = req.ctvUser.firstDepositDone !== false && req.ctvUser.status !== 'PENDING_ACTIVATION';
+  const minRequired = isActivated ? 50000 : 150000;
+
+  if (!numAmount || numAmount < minRequired) {
+    if (!isActivated) {
+      return res.status(400).json({ ok: false, message: 'Số tiền nạp kích hoạt tài khoản CTV lần đầu tối thiểu là 150.000đ (150k)!' });
+    } else {
+      return res.status(400).json({ ok: false, message: 'Số tiền nạp tối thiểu là 50.000đ (50k)!' });
+    }
   }
 
   const settings = loadSettings();
@@ -3051,8 +3099,26 @@ app.post('/api/ctv/deposit/create', requireCtv, async (req, res) => {
   });
 });
 
+// 4b. Tra cứu nhanh trạng thái đơn nạp tiền
+app.get('/api/ctv/deposit/status/:code', requireCtv, (req, res) => {
+  const code = (req.params.code || '').trim().toUpperCase();
+  const deposits = loadCtvDeposits();
+  const dep = deposits.find(d => (d.depositCode || '').toUpperCase() === code && d.username.toLowerCase() === req.ctvUser.username.toLowerCase());
+  if (!dep) {
+    return res.status(404).json({ ok: false, message: 'Không tìm thấy lệnh nạp!' });
+  }
+  const isActivated = req.ctvUser.firstDepositDone !== false && req.ctvUser.status !== 'PENDING_ACTIVATION';
+  return res.json({
+    ok: true,
+    status: dep.status,
+    isActivated: isActivated,
+    userBalance: req.ctvUser.balance || 0,
+    userCoins: req.ctvUser.coins || 0
+  });
+});
+
 // 5. Tra cứu UID khách hàng (Hỗ trợ tra tự động qua Kawaii & Cụ Cam)
-app.get('/api/ctv/lookup-user', requireCtv, async (req, res) => {
+app.get('/api/ctv/lookup-user', requireCtvActive, async (req, res) => {
   const rawUser = req.query.username || '';
   const username = cleanLocketUsername(rawUser);
   if (!username) {
@@ -3141,7 +3207,7 @@ app.get('/api/ctv/lookup-user', requireCtv, async (req, res) => {
 });
 
 // 5b. Tra cứu DNS & Cấu hình toàn diện cho CTV (Hỗ trợ tra DNS, profile link, khung widget, tin nhắn mẫu)
-app.get('/api/ctv/dns-lookup', requireCtv, async (req, res) => {
+app.get('/api/ctv/dns-lookup', requireCtvActive, async (req, res) => {
   const rawQuery = req.query.query || req.query.username || req.query.uid || '';
   const cleanId = cleanLocketUsername(rawQuery);
   if (!cleanId) {
@@ -3265,7 +3331,7 @@ ${regularProfileUrl}
 });
 
 // 6. CTV Kích hoạt gói cho khách hàng (Đồng bộ gọi API Kawaii VIP HOẶC Cụ Cam Gold/Spotify)
-app.post('/api/ctv/activate', requireCtv, async (req, res) => {
+app.post('/api/ctv/activate', requireCtvActive, async (req, res) => {
   const { username, service, planId, uid, fullName, avatarUrl } = req.body || {};
   const cleanUser = cleanLocketUsername(username || '');
   if (!cleanUser) {
@@ -3433,14 +3499,14 @@ app.post('/api/ctv/activate', requireCtv, async (req, res) => {
 });
 
 // 7. Lấy danh sách khách hàng của CTV
-app.get('/api/ctv/customers', requireCtv, (req, res) => {
+app.get('/api/ctv/customers', requireCtvActive, (req, res) => {
   const customers = loadCtvCustomers();
   const ctvCusts = customers.filter(c => c.ctvUsername.toLowerCase() === req.ctvUser.username.toLowerCase());
   return res.json({ ok: true, customers: ctvCusts });
 });
 
 // 8. CTV Xóa khách khỏi danh sách
-app.post('/api/ctv/customer/delete', requireCtv, async (req, res) => {
+app.post('/api/ctv/customer/delete', requireCtvActive, async (req, res) => {
   const { id } = req.body || {};
   let customers = loadCtvCustomers();
   customers = customers.filter(c => !(c.id === id && c.ctvUsername.toLowerCase() === req.ctvUser.username.toLowerCase()));
@@ -3463,10 +3529,12 @@ app.get('/api/admin/ctv/list', requireAdmin, (req, res) => {
     return {
       username: u.username,
       fullName: u.fullName,
-      phone: u.phone,
+      phone: u.phone || '',
+      email: u.email || '',
       balance: u.balance || 0,
       coins: u.coins || Math.floor((u.balance || 0) / 1000),
       status: u.status || 'ACTIVE',
+      firstDepositDone: u.firstDepositDone !== false,
       customerCount: custCount,
       createdAt: u.createdAt
     };
@@ -3531,6 +3599,11 @@ app.post('/api/admin/ctv/adjust-balance', requireAdmin, async (req, res) => {
 
   user.coins = finalCoins;
   user.balance = finalCoins * 1000;
+  if ((user.status === 'PENDING_ACTIVATION' || user.firstDepositDone === false) && user.balance >= 150000) {
+    user.firstDepositDone = true;
+    user.status = 'ACTIVE';
+    user.activatedAt = new Date().toISOString();
+  }
   if (!(await saveCtvUsers(users))) {
     return res.status(500).json({ ok: false, message: 'Không thể lưu số dư CTV!' });
   }

@@ -877,6 +877,74 @@
     </div>
   </div>
 
+    <!-- ==================== ACTIVATION GATE (NẠP 150K LẦN ĐẦU) ==================== -->
+  <div class="ctv-modal-overlay" id="activation-modal" style="display: none; z-index: 10000; background: rgba(8, 10, 15, 0.94); backdrop-filter: blur(14px);">
+    <div class="deposit-modal-card" style="max-width: 520px; text-align: center; border: 2px solid rgba(245, 158, 11, 0.5); box-shadow: 0 20px 60px rgba(245, 158, 11, 0.25);">
+      <div style="font-size: 42px; margin-bottom: 8px;">👑</div>
+      <h2 style="font-family: var(--font-heading); font-size: 1.5rem; color: #FBBF24; margin-bottom: 6px;">
+        KÍCH HOẠT TÀI KHOẢN CTV
+      </h2>
+      <p style="color: #94A3B8; font-size: 13.5px; margin-bottom: 14px; line-height: 1.5;">
+        Chào mừng <b id="act-user-badge" style="color: #F8FAFC;">@ctv</b>! Để hoàn tất đăng ký và mở khóa toàn bộ quyền hạn Cổng CTV, bạn cần nạp kích hoạt lần đầu tối thiểu <b style="color: #F59E0B; font-size: 15px;">150.000đ</b> vào ví.
+      </p>
+
+      <div style="background: rgba(245, 158, 11, 0.1); border: 1px dashed rgba(245, 158, 11, 0.4); border-radius: 14px; padding: 12px 14px; margin-bottom: 18px; font-size: 13px; text-align: left; color: #FDE68A; line-height: 1.5;">
+        <i class="fa-solid fa-circle-check" style="color: #10B981; margin-right: 6px;"></i>
+        <b>Cam kết 100% số dư:</b> Toàn bộ <b style="color: #fff;">150.000đ (+150 Coin)</b> sẽ được cộng ngay vào ví của bạn để kích hoạt gói Locket VIP cho khách hàng. Không mất phí đăng ký hay phí duy trì!
+      </div>
+
+      <!-- QR Box & Bank Details -->
+      <div id="act-qr-container" style="background: rgba(0,0,0,0.45); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 16px; margin-bottom: 16px;">
+        <div id="act-qr-loading" style="padding: 24px 0; color: #94A3B8;">
+          <i class="fa-solid fa-spinner fa-spin fa-2x" style="color: var(--gold-primary); margin-bottom: 10px;"></i>
+          <div>Đang tạo mã VietQR kích hoạt 150.000đ...</div>
+        </div>
+
+        <div id="act-qr-body" style="display: none;">
+          <img id="act-qr-img" src="" alt="VietQR 150k"
+            style="max-width: 220px; border-radius: 12px; margin: 0 auto 14px auto; display: block; border: 2px solid rgba(245,158,11,0.4);">
+          
+          <div style="background: rgba(0,0,0,0.5); border-radius: 12px; padding: 12px 14px; text-align: left; font-size: 13px; border: 1px solid var(--border-subtle);">
+            <div style="margin-bottom: 6px;">Ngân hàng: <b id="act-bank-name">VPBank</b></div>
+            <div style="margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+              <div>Số tài khoản: <b id="act-bank-acc" style="color: #FDE68A; font-size: 14px;">2027022007</b></div>
+              <button type="button" class="btn-copy-mini" onclick="copyText(document.getElementById('act-bank-acc').innerText)">
+                <i class="fa-solid fa-copy"></i> Sao chép
+              </button>
+            </div>
+            <div style="margin-bottom: 6px;">Chủ tài khoản: <b id="act-bank-owner">NGUYEN MINH HIEP</b></div>
+            <div style="margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+              <div>Số tiền nạp kích hoạt: <b id="act-amount-val" style="color: #F59E0B; font-size: 15px;">150.000đ</b></div>
+              <button type="button" class="btn-copy-mini" onclick="copyText('150000')">
+                <i class="fa-solid fa-copy"></i> Sao chép
+              </button>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+              <div>Nội dung CK: <code id="act-memo-val" style="color: #FDE68A; background: rgba(255,255,255,0.15); padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: 14px;">NAP...</code></div>
+              <button type="button" class="btn-copy-mini" onclick="copyText(document.getElementById('act-memo-val').innerText)">
+                <i class="fa-solid fa-copy"></i> Sao chép
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size: 13px; color: var(--emerald); font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span>Hệ thống tự động duyệt sau 2-5 giây khi chuyển khoản thành công!</span>
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <button type="button" class="btn-mini-dns" onclick="handleCtvLogout()" style="background: rgba(255,255,255,0.06); color: #94A3B8;">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Đổi tài khoản / Đăng xuất
+        </button>
+        <button type="button" class="btn-mini-dns primary" onclick="checkActivationStatusManually()">
+          <i class="fa-solid fa-arrows-rotate"></i> Tôi đã chuyển tiền (Kiểm tra ngay)
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== MODAL NẠP TIỀN VIETQR ==================== -->
   <div class="ctv-modal-overlay" id="deposit-modal" style="display: none;">
     <div class="deposit-modal-card">
@@ -895,13 +963,13 @@
         <label style="display:block; font-size:13px; font-weight:700; margin-bottom:8px; color:var(--text-sub);">Chọn
           hoặc nhập số tiền muốn nạp:</label>
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;">
-          <button type="button" class="btn-mini-dns primary" onclick="selectDepositAmount(60000)">60.000đ</button>
+          <button type="button" class="btn-mini-dns primary" onclick="selectDepositAmount(50000)">50.000đ</button>
           <button type="button" class="btn-mini-dns" onclick="selectDepositAmount(100000)">100.000đ</button>
           <button type="button" class="btn-mini-dns" onclick="selectDepositAmount(200000)">200.000đ</button>
           <button type="button" class="btn-mini-dns" onclick="selectDepositAmount(500000)">500.000đ</button>
         </div>
         <input type="number" id="deposit-custom-amount" class="ctv-input"
-          placeholder="Hoặc nhập số tiền khác (Tối thiểu 60.000đ)..." min="60000" style="margin-bottom: 16px;">
+          placeholder="Hoặc nhập số tiền khác (Tối thiểu 50.000đ)..." min="50000" style="margin-bottom: 16px;">
         <button type="button" class="btn-activate-main" style="width: 100%; justify-content: center;"
           onclick="createDepositQR()">
           <i class="fa-solid fa-qrcode"></i> Tạo Mã VietQR Nạp Tiền

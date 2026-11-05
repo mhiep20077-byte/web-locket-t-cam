@@ -385,6 +385,47 @@ function saveOrders(orders) {
   return saveCollection('orders', ORDERS_FILE, orders, 'ORDERS');
 }
 
+function ensureDefaultCtvAccounts(users, settings = loadSettings()) {
+  if (!Array.isArray(users)) return false;
+  let changed = false;
+
+  // 1. Tài khoản CTV tocam_ctv (bỏ qua bước nạp 150k, kích hoạt sẵn, có sẵn 100 coin)
+  if (!settings._deleted_tocam_ctv && !users.some(u => u && String(u.username).toLowerCase() === 'tocam_ctv')) {
+    users.push({
+      username: 'tocam_ctv',
+      password: 'Tocam123456',
+      fullName: 'Tổ Cam VIP CTV',
+      phone: '',
+      email: 'ctv@tocams.xyz',
+      balance: 100000,
+      coins: 100,
+      status: 'ACTIVE',
+      firstDepositDone: true,
+      createdAt: new Date().toISOString()
+    });
+    changed = true;
+  }
+
+  // 2. Tài khoản CTV xuandieu09
+  if (!settings._deleted_xuandieu09 && !users.some(u => u && String(u.username).toLowerCase() === 'xuandieu09')) {
+    users.push({
+      username: 'xuandieu09',
+      password: 'xuandieu123',
+      fullName: 'xuandieu09',
+      phone: '',
+      email: 'xuandieu09@gmail.com',
+      balance: 0,
+      coins: 0,
+      status: 'ACTIVE',
+      firstDepositDone: true,
+      createdAt: '2026-11-05T03:30:00.000Z'
+    });
+    changed = true;
+  }
+
+  return changed;
+}
+
 function loadCtvUsers() {
   const users = loadCollection('ctv_users', CTV_USERS_FILE, []);
   const now = Date.now();
@@ -401,6 +442,9 @@ function loadCtvUsers() {
     }
     return true;
   });
+  if (ensureDefaultCtvAccounts(validUsers)) {
+    changed = true;
+  }
   if (changed) {
     saveCtvUsers(validUsers).catch(e => console.error('Lỗi lưu sau khi dọn dẹp CTV hết hạn:', e));
   }
@@ -486,34 +530,21 @@ async function initializeDatabase() {
   for (const token of loadSessions()) activeAdminTokens.add(token);
   console.log('[DATABASE] PostgreSQL đã kết nối; dữ liệu JSON local được nạp nếu collection còn trống.');
 
-  // Tự động khôi phục tài khoản CTV @xuandieu09 nếu chưa tồn tại trong PostgreSQL
+  // Tự động khôi phục và đảm bảo các tài khoản CTV mặc định (tocam_ctv, xuandieu09) trong PostgreSQL
   try {
     const ctvData = databaseCache.get('ctv_users');
     let ctvList = Array.isArray(ctvData) ? ctvData : [];
     const settingsData = databaseCache.get('settings') || {};
-    if (!settingsData._deleted_xuandieu09 && !ctvList.some(u => u && String(u.username).toLowerCase() === 'xuandieu09')) {
-      console.log('[DATABASE] 🔄 Tự động khôi phục tài khoản CTV @xuandieu09 vào PostgreSQL...');
-      ctvList.push({
-        username: 'xuandieu09',
-        password: 'xuandieu123',
-        fullName: 'xuandieu09',
-        phone: '',
-        email: 'xuandieu09@gmail.com',
-        balance: 0,
-        coins: 0,
-        status: 'ACTIVE',
-        firstDepositDone: true,
-        createdAt: '2026-11-05T03:30:00.000Z'
-      });
+    if (ensureDefaultCtvAccounts(ctvList, settingsData)) {
       databaseCache.set('ctv_users', ctvList);
       await databasePool.query(
         'INSERT INTO app_data (collection_name, payload, updated_at) VALUES ($1, $2::jsonb, NOW()) ON CONFLICT (collection_name) DO UPDATE SET payload = EXCLUDED.payload, updated_at = NOW()',
         ['ctv_users', JSON.stringify(ctvList)]
       );
-      console.log('[DATABASE] ✅ Đã khôi phục thành công @xuandieu09 vào PostgreSQL!');
+      console.log('[DATABASE] ✅ Đã cập nhật các tài khoản CTV mặc định (@tocam_ctv, @xuandieu09) vào PostgreSQL!');
     }
   } catch (recErr) {
-    console.error('[DATABASE] Lỗi khôi phục @xuandieu09:', recErr);
+    console.error('[DATABASE] Lỗi cập nhật CTV mặc định:', recErr);
   }
 }
 
@@ -3739,6 +3770,11 @@ app.post('/api/admin/ctv/delete', requireAdmin, async (req, res) => {
     settings._deleted_xuandieu09 = true;
     await saveSettings(settings);
   }
+  if (username.toLowerCase() === 'tocam_ctv') {
+    const settings = loadSettings();
+    settings._deleted_tocam_ctv = true;
+    await saveSettings(settings);
+  }
 
   console.log(`[ADMIN CTV] 🗑️ Admin đã xóa vĩnh viễn tài khoản CTV @${username}!`);
   return res.json({
@@ -3798,6 +3834,11 @@ app.post('/api/admin/ctv/create-or-restore', requireAdmin, async (req, res) => {
   if (cleanUser.toLowerCase() === 'xuandieu09') {
     const settings = loadSettings();
     delete settings._deleted_xuandieu09;
+    await saveSettings(settings);
+  }
+  if (cleanUser.toLowerCase() === 'tocam_ctv') {
+    const settings = loadSettings();
+    delete settings._deleted_tocam_ctv;
     await saveSettings(settings);
   }
 

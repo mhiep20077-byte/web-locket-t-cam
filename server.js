@@ -3664,6 +3664,37 @@ app.post('/api/admin/ctv/toggle-status', requireAdmin, async (req, res) => {
   });
 });
 
+// 3b. Admin xóa vĩnh viễn tài khoản CTV
+app.post('/api/admin/ctv/delete', requireAdmin, async (req, res) => {
+  const { username } = req.body || {};
+  if (!username) {
+    return res.status(400).json({ ok: false, message: 'Vui lòng cung cấp username CTV cần xóa!' });
+  }
+
+  let users = loadCtvUsers();
+  const target = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+  if (!target) {
+    return res.status(404).json({ ok: false, message: 'Không tìm thấy tài khoản CTV!' });
+  }
+
+  users = users.filter(u => u.username.toLowerCase() !== username.toLowerCase());
+  if (!(await saveCtvUsers(users))) {
+    return res.status(500).json({ ok: false, message: 'Không thể lưu sau khi xóa CTV!' });
+  }
+
+  for (const [token, user] of activeCtvTokens.entries()) {
+    if (user.toLowerCase() === username.toLowerCase()) {
+      activeCtvTokens.delete(token);
+    }
+  }
+
+  console.log(`[ADMIN CTV] 🗑️ Admin đã xóa vĩnh viễn tài khoản CTV @${username}!`);
+  return res.json({
+    ok: true,
+    message: `Đã xóa vĩnh viễn tài khoản CTV @${username} khỏi hệ thống!`
+  });
+});
+
 // 4. Admin lưu cài đặt & bật/tắt chức năng CTV & Bảng giá sỉ
 app.post('/api/admin/ctv/settings', requireAdmin, async (req, res) => {
   const { allowRegister, tabLocket, tabVipFilter, tabSpotify, wholesalePlans, depositPrefix } = req.body || {};

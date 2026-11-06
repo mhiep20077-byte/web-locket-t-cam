@@ -1506,13 +1506,13 @@ async function processIncomingTransaction(tx) {
     matchedDeposit.completedAt = new Date().toISOString();
     if (!(await saveCtvDeposits(deposits))) throw new Error('Không thể lưu lệnh nạp CTV sau thanh toán.');
 
-    // Tự động cộng số dư tiền và Coin cho CTV (Ưu đãi nạp >= 200k +30k)
+    // Tự động cộng số dư tiền và Coin cho CTV (Ưu đãi nạp: >= 200k +30k, >= 500k +80k)
     const users = loadCtvUsers();
     const user = users.find(u => u.username.toLowerCase() === matchedDeposit.username.toLowerCase());
     if (user) {
       const bonus = matchedDeposit.bonusAmount !== undefined
         ? matchedDeposit.bonusAmount
-        : (matchedDeposit.amount >= 200000 ? 30000 : 0);
+        : (matchedDeposit.amount >= 500000 ? 80000 : (matchedDeposit.amount >= 200000 ? 30000 : 0));
       const creditToAdd = matchedDeposit.amount + bonus;
       const coinsToAdd = Math.floor(creditToAdd / 1000);
 
@@ -3313,7 +3313,7 @@ app.post('/api/ctv/deposit/create', requireCtv, async (req, res) => {
   const memo = depositCode;
   const qrUrl = `https://img.vietqr.io/image/${bank.bankId}-${bank.accountNumber}-compact2.png?amount=${numAmount}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(bank.accountName)}`;
 
-  const bonusAmount = numAmount >= 200000 ? 30000 : 0;
+  const bonusAmount = numAmount >= 500000 ? 80000 : (numAmount >= 200000 ? 30000 : 0);
   const totalCredit = numAmount + bonusAmount;
   const totalCoins = Math.floor(totalCredit / 1000);
 

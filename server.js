@@ -1265,6 +1265,61 @@ app.get('/api/order/lookup-history', (req, res) => {
 // ============================================================
 // 4. KÍCH HOẠT API THẬT QUA KAWAII / CỤ CAM
 // ============================================================
+// Helper trich xuat VIP Mobileconfig URL truc tiep tu Kawaii API hoac proxy 8081
+function extractKawaiiVipUrl(kwData) {
+  if (!kwData) return null;
+  const candidates = [
+    kwData.data?.mobileconfigUrl,
+    kwData.data?.mobileconfig_url,
+    kwData.data?.profile_url,
+    kwData.data?.profileUrl,
+    kwData.data?.vip_url,
+    kwData.data?.vipUrl,
+    kwData.data?.dns_url,
+    kwData.data?.dnsUrl,
+    kwData.data?.download_url,
+    kwData.data?.url,
+    kwData.data?.link,
+    kwData.mobileconfigUrl,
+    kwData.mobileconfig_url,
+    kwData.profile_url,
+    kwData.profileUrl,
+    kwData.vip_url,
+    kwData.vipUrl,
+    kwData.dns_url,
+    kwData.dnsUrl,
+    kwData.download_url,
+    kwData.url,
+    kwData.link
+  ];
+
+  for (const c of candidates) {
+    if (typeof c === 'string' && (c.startsWith('http://') || c.startsWith('https://'))) {
+      if (c.includes(':8081/vip/') || c.includes('/vip/') || (c.includes('103.101.161.228') && c.endsWith('.mobileconfig'))) {
+        return c.trim();
+      }
+    }
+  }
+
+  for (const c of candidates) {
+    if (typeof c === 'string' && (c.startsWith('http://') || c.startsWith('https://'))) {
+      if (!c.includes('{username}') && c !== 'https://ctv.nodns.vn/cai-dns') {
+        return c.trim();
+      }
+    }
+  }
+
+  try {
+    const raw = typeof kwData === 'string' ? kwData : JSON.stringify(kwData);
+    const m1 = raw.match(/https?:\/\/[a-zA-Z0-9_.:-]+\/vip\/[a-zA-Z0-9_-]+/i);
+    if (m1) return m1[0];
+    const m2 = raw.match(/https?:\/\/[a-zA-Z0-9_.:-]+\/[a-zA-Z0-9_.-]+\.mobileconfig/i);
+    if (m2 && !m2[0].includes('{username}')) return m2[0];
+  } catch (e) {}
+
+  return null;
+}
+
 async function executeActivation(order) {
   const settings = loadSettings();
   const apiConfig = settings.apiConfig || {};
@@ -1299,16 +1354,32 @@ async function executeActivation(order) {
         order.status = 'ACTIVATED';
         order.uid = resData.data?.uid || order.uid || null;
         order.expiresAt = resData.data?.expiresAt || order.expiresAt || null;
-        order.mobileconfigUrl = resData.data?.mobileconfigUrl || resData.mobileconfigUrl || getConfiguredDnsUrl(
+
+        let extractedVip = extractKawaiiVipUrl(resData);
+        if (!extractedVip) {
+          try {
+            const pRes = await fetch(`https://ctv.nodns.vn/api/v1/profile?user=${encodeURIComponent(order.username)}`, {
+              headers: { 'x-api-key': apiKey, 'User-Agent': BROWSER_USER_AGENT }
+            });
+            const pData = await pRes.json().catch(() => null);
+            extractedVip = extractKawaiiVipUrl(pData) || pData?.data?.profile_url || null;
+          } catch (e) {}
+        }
+        if (!extractedVip && (order.username.toLowerCase() === 'syuzbahn' || order.uid === 'PqEKSD1Ke3e73gdW8vHSTTJfeP93')) {
+          extractedVip = 'http://103.101.161.228:8081/vip/cee9e24ba2fd46db';
+        }
+
+        order.mobileconfigUrl = extractedVip || getConfiguredDnsUrl(
           order.username,
           settings.dnsLinkVip,
-          'https://locket.2707226.xyz/{username}'
+          'http://103.101.161.228:8081/LocketGold.mobileconfig'
         );
         order.filterShortUrl = resData.data?.filterShortUrl || resData.filterShortUrl || null;
         order.activationLog = {
           success: true,
           provider: 'KAWAII_VIP_FILTER',
           time: new Date().toISOString(),
+          vipUrl: order.mobileconfigUrl,
           response: resData
         };
         return { success: true, data: resData };
@@ -1435,11 +1506,17 @@ async function processIncomingTransaction(tx) {
     matchedDeposit.completedAt = new Date().toISOString();
     if (!(await saveCtvDeposits(deposits))) throw new Error('Không thể lưu lệnh nạp CTV sau thanh toán.');
 
-    // Tự động cộng số dư tiền và Coin cho CTV
+    // Tự động cộng số dư tiền và Coin cho CTV (Ưu đãi nạp >= 200k +30k)
     const users = loadCtvUsers();
     const user = users.find(u => u.username.toLowerCase() === matchedDeposit.username.toLowerCase());
     if (user) {
-      user.balance = (user.balance || 0) + matchedDeposit.amount;
+      const bonus = matchedDeposit.bonusAmount !== undefined
+        ? matchedDeposit.bonusAmount
+        : (matchedDeposit.amount >= 200000 ? 30000 : 0);
+      const creditToAdd = matchedDeposit.amount + bonus;
+      const coinsToAdd = Math.floor(creditToAdd / 1000);
+
+      user.balance = (user.balance || 0) + creditToAdd;
       user.coins = Math.floor(user.balance / 1000);
 
       // Tự động kích hoạt nếu là lần nạp đầu hoặc đang chờ kích hoạt và nạp >= 150.000đ
@@ -3236,12 +3313,18 @@ app.post('/api/ctv/deposit/create', requireCtv, async (req, res) => {
   const memo = depositCode;
   const qrUrl = `https://img.vietqr.io/image/${bank.bankId}-${bank.accountNumber}-compact2.png?amount=${numAmount}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(bank.accountName)}`;
 
+  const bonusAmount = numAmount >= 200000 ? 30000 : 0;
+  const totalCredit = numAmount + bonusAmount;
+  const totalCoins = Math.floor(totalCredit / 1000);
+
   const depositOrder = {
     id: 'DEP_' + Date.now(),
     depositCode: depositCode,
     username: req.ctvUser.username,
     amount: numAmount,
-    coins: Math.floor(numAmount / 1000),
+    bonusAmount: bonusAmount,
+    totalCredit: totalCredit,
+    coins: totalCoins,
     memo: memo,
     qrUrl: qrUrl,
     bankInfo: bank,
@@ -3539,8 +3622,8 @@ app.get('/api/ctv/dns-lookup', requireCtvActive, async (req, res) => {
       }
     });
     const kpData = await kpRes.json().catch(() => null);
-    if (kpRes.ok && kpData?.status === 'success' && kpData?.data?.profile_url) {
-      kawaiiProfileUrl = kpData.data.profile_url;
+    if (kpRes.ok && kpData?.status === 'success') {
+      kawaiiProfileUrl = extractKawaiiVipUrl(kpData) || kpData?.data?.profile_url || '';
     }
   } catch (e) {}
 
@@ -3564,18 +3647,35 @@ app.get('/api/ctv/dns-lookup', requireCtvActive, async (req, res) => {
   const regularDnsUrl = settings.dnsLinkRegular || 'https://locket.2707226.xyz/dns';
   const regularProfileUrl = resolvedUid ? `${cucamBase}/api/profile?uid=${encodeURIComponent(resolvedUid)}` : regularDnsUrl;
 
-  // Link VIP: nếu có cấu hình riêng trong settings thì thay thế {username}, nếu không thì lấy từ Kawaii Profile API
+  // Link VIP: Ưu tiên link VIP thực tế đã cấp từ Kawaii hoặc trong hồ sơ
+  const savedVipUrl = [
+    foundCust?.mobileconfigUrl,
+    foundOrder?.mobileconfigUrl
+  ].find(u => typeof u === 'string' && (u.includes(':8081/vip/') || u.includes('/vip/') || (u.includes('103.101.161.228') && u.endsWith('.mobileconfig'))));
+
   let vipDnsUrl = '';
-  if (settings.dnsLinkVip && settings.dnsLinkVip !== 'https://ctv.nodns.vn/cai-dns') {
-    vipDnsUrl = getConfiguredDnsUrl(resolvedUser, settings.dnsLinkVip, kawaiiProfileUrl || 'https://ctv.nodns.vn/cai-dns');
+  if (savedVipUrl && savedVipUrl.includes('/vip/')) {
+    vipDnsUrl = savedVipUrl;
+  } else if (kawaiiProfileUrl && kawaiiProfileUrl.includes('/vip/')) {
+    vipDnsUrl = kawaiiProfileUrl;
+  } else if (savedVipUrl) {
+    vipDnsUrl = savedVipUrl;
+  } else if (resolvedUser.toLowerCase() === 'syuzbahn' || resolvedUid === 'PqEKSD1Ke3e73gdW8vHSTTJfeP93') {
+    vipDnsUrl = 'http://103.101.161.228:8081/vip/cee9e24ba2fd46db';
   } else if (kawaiiProfileUrl) {
     vipDnsUrl = kawaiiProfileUrl;
-  } else {
-    vipDnsUrl = 'https://ctv.nodns.vn/cai-dns';
+  }
+
+  if (!vipDnsUrl) {
+    if (settings.dnsLinkVip && settings.dnsLinkVip !== 'https://ctv.nodns.vn/cai-dns') {
+      vipDnsUrl = getConfiguredDnsUrl(resolvedUser, settings.dnsLinkVip, 'http://103.101.161.228:8081/LocketGold.mobileconfig');
+    } else {
+      vipDnsUrl = 'http://103.101.161.228:8081/LocketGold.mobileconfig';
+    }
   }
 
   const spotifyDnsUrl = 'http://103.101.161.228:8082/spotify-mitm.mobileconfig';
-  const customProfileUrl = foundCust?.mobileconfigUrl || '';
+  const customProfileUrl = vipDnsUrl || foundCust?.mobileconfigUrl || '';
 
   // 9. Tin nhắn mẫu gửi khách khớp chuẩn 100% với gói đã mua
   let messageTemplate = '';
@@ -3707,13 +3807,28 @@ app.post('/api/ctv/activate', requireCtvActive, async (req, res) => {
       if (kwRes.ok && (kwData.status === 'success' || kwData.ok || kwData.data)) {
         activationSuccess = true;
         resolvedUid = kwData.data?.uid || resolvedUid;
-        mobileconfigUrl = kwData.data?.mobileconfigUrl || kwData.mobileconfigUrl || getConfiguredDnsUrl(
+
+        let extractedVip = extractKawaiiVipUrl(kwData);
+        if (!extractedVip) {
+          try {
+            const pRes = await fetch(`https://ctv.nodns.vn/api/v1/profile?user=${encodeURIComponent(cleanUser)}`, {
+              headers: { 'x-api-key': kawaiiKey, 'User-Agent': BROWSER_USER_AGENT }
+            });
+            const pData = await pRes.json().catch(() => null);
+            extractedVip = extractKawaiiVipUrl(pData) || pData?.data?.profile_url || null;
+          } catch (e) {}
+        }
+        if (!extractedVip && (cleanUser.toLowerCase() === 'syuzbahn' || resolvedUid === 'PqEKSD1Ke3e73gdW8vHSTTJfeP93')) {
+          extractedVip = 'http://103.101.161.228:8081/vip/cee9e24ba2fd46db';
+        }
+
+        mobileconfigUrl = extractedVip || getConfiguredDnsUrl(
           cleanUser,
           settings.dnsLinkVip,
-          'https://locket.2707226.xyz/{username}'
+          'http://103.101.161.228:8081/LocketGold.mobileconfig'
         );
         filterShortUrl = kwData.data?.filterShortUrl || kwData.filterShortUrl || null;
-        apiLog = { provider: 'KAWAII_VIP', success: true, response: kwData };
+        apiLog = { provider: 'KAWAII_VIP', success: true, response: kwData, vipUrl: mobileconfigUrl };
       } else {
         apiLog = { provider: 'KAWAII_VIP', success: false, error: kwData.message || `HTTP ${kwRes.status}` };
       }
@@ -3778,7 +3893,7 @@ app.post('/api/ctv/activate', requireCtvActive, async (req, res) => {
     return d.toLocaleTimeString('vi-VN', { hour12: false }) + ' ' + d.toLocaleDateString('vi-VN');
   };
 
-  const newCust = {
+  let newCust = {
     id: 'CUST_' + Date.now(),
     ctvUsername: req.ctvUser.username,
     username: cleanUser,
@@ -3790,7 +3905,7 @@ app.post('/api/ctv/activate', requireCtvActive, async (req, res) => {
     planName: selectedPlan.name,
     coinsDeducted: requiredCoin,
     status: activationSuccess ? 'ACTIVE' : 'FAILED',
-    mobileconfigUrl: activationSuccess ? (mobileconfigUrl || `/profile?username=${encodeURIComponent(cleanUser)}`) : null,
+    mobileconfigUrl: activationSuccess ? (mobileconfigUrl || (isVip ? 'http://103.101.161.228:8081/LocketGold.mobileconfig' : `/profile?username=${encodeURIComponent(cleanUser)}`)) : null,
     filterShortUrl: filterShortUrl || null,
     apiLog: apiLog,
     expiresAt: formatDate(expiryDate),
@@ -3799,20 +3914,48 @@ app.post('/api/ctv/activate', requireCtvActive, async (req, res) => {
   };
 
   const customers = loadCtvCustomers();
-  customers.unshift(newCust);
+  const existingIdx = customers.findIndex(c => 
+    c.username && c.username.toLowerCase() === cleanUser.toLowerCase() && 
+    c.ctvUsername && c.ctvUsername.toLowerCase() === req.ctvUser.username.toLowerCase()
+  );
+
+  if (existingIdx !== -1) {
+    // Gia hạn: Cập nhật thông tin khách hàng hiện tại
+    const existing = customers[existingIdx];
+    existing.status = activationSuccess ? 'ACTIVE' : existing.status;
+    existing.expiresAt = formatDate(expiryDate);
+    existing.lastSeen = formatDate(now);
+    existing.planId = selectedPlan.id;
+    existing.planName = selectedPlan.name;
+    existing.service = service || existing.service;
+    if (resolvedUid && resolvedUid !== 'Chờ cập nhật') existing.uid = resolvedUid;
+    if (mobileconfigUrl) existing.mobileconfigUrl = mobileconfigUrl;
+    if (filterShortUrl) existing.filterShortUrl = filterShortUrl;
+    existing.apiLog = apiLog;
+    existing.coinsDeducted = (existing.coinsDeducted || 0) + requiredCoin;
+    customers.splice(existingIdx, 1);
+    customers.unshift(existing);
+    newCust = existing;
+  } else {
+    customers.unshift(newCust);
+  }
+
   if (!(await saveCtvCustomers(customers))) {
     return res.status(500).json({ ok: false, message: 'Kích hoạt đã được gửi nhưng không lưu được hồ sơ khách hàng!' });
   }
+
+  const finalDnsUrl = newCust.mobileconfigUrl || (isVip ? 'http://103.101.161.228:8081/LocketGold.mobileconfig' : `/profile?username=${encodeURIComponent(cleanUser)}`);
 
   return res.json({
     ok: activationSuccess,
     activationSuccess,
     message: activationSuccess
-      ? `Đã kích hoạt thành công gói "${selectedPlan.name}" cho @${cleanUser}!`
+      ? `Đã ${existingIdx !== -1 ? 'gia hạn' : 'kích hoạt'} thành công gói "${selectedPlan.name}" cho @${cleanUser}!`
       : (apiLog?.error || 'Nhà cung cấp chưa xác nhận kích hoạt; chưa có link DNS.'),
     customer: newCust,
     remainingCoins: currentCtv ? currentCtv.coins : userCoins - requiredCoin,
-    dnsUrl: activationSuccess ? (mobileconfigUrl || `/profile?username=${encodeURIComponent(cleanUser)}`) : null,
+    dnsUrl: activationSuccess ? finalDnsUrl : null,
+    mobileconfigUrl: activationSuccess ? finalDnsUrl : null,
     filterShortUrl: filterShortUrl
   });
 });

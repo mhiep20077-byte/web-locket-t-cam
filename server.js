@@ -3076,7 +3076,7 @@ app.post('/api/admin/upload-image', requireAdmin, (req, res) => {
 // 2. Thêm ảnh vào VIP Gallery
 app.post('/api/admin/gallery/add', requireAdmin, async (req, res) => {
   try {
-    const { title, tag, imageUrl, caption } = req.body || {};
+    const { title, tag, imageUrl, caption, position } = req.body || {};
     if (!imageUrl || !title) {
       return res.status(400).json({ ok: false, message: 'Vui lòng cung cấp link ảnh và tiêu đề!' });
     }
@@ -3095,12 +3095,60 @@ app.post('/api/admin/gallery/add', requireAdmin, async (req, res) => {
       createdAt: new Date().toISOString()
     };
 
-    settings.vipGallery.push(newItem);
+    if (position === 'top' || position === 'first') {
+      settings.vipGallery.unshift(newItem);
+    } else {
+      settings.vipGallery.push(newItem);
+    }
+
     if (!(await saveSettings(settings))) {
       return res.status(500).json({ ok: false, message: 'Không thể lưu ảnh vào showroom!' });
     }
 
     return res.json({ ok: true, message: 'Đã thêm ảnh vào showroom VIP thành công!', item: newItem, gallery: settings.vipGallery });
+  } catch (err) {
+    return res.status(500).json({ ok: false, message: err.message });
+  }
+});
+
+// 2.5. Sắp xếp lại thứ tự ảnh VIP Gallery
+app.post('/api/admin/gallery/reorder', requireAdmin, async (req, res) => {
+  try {
+    const { ids } = req.body || {};
+    if (!Array.isArray(ids)) {
+      return res.status(400).json({ ok: false, message: 'Dữ liệu thứ tự không hợp lệ!' });
+    }
+
+    const settings = loadSettings();
+    if (!Array.isArray(settings.vipGallery)) {
+      settings.vipGallery = [];
+    }
+
+    const map = new Map();
+    settings.vipGallery.forEach(item => {
+      if (item && item.id) map.set(item.id, item);
+    });
+
+    const newGallery = [];
+    ids.forEach(id => {
+      if (map.has(id)) {
+        newGallery.push(map.get(id));
+        map.delete(id);
+      }
+    });
+
+    // Thêm các ảnh còn lại nếu có
+    for (const leftover of map.values()) {
+      newGallery.push(leftover);
+    }
+
+    settings.vipGallery = newGallery;
+    if (!(await saveSettings(settings))) {
+      return res.status(500).json({ ok: false, message: 'Không thể lưu thứ tự ảnh showroom!' });
+    }
+
+    console.log(`[ADMIN] ✅ Đã lưu thứ tự ${newGallery.length} ảnh trong Showroom VIP`);
+    return res.json({ ok: true, message: 'Đã lưu thứ tự ảnh showroom thành công!', gallery: settings.vipGallery });
   } catch (err) {
     return res.status(500).json({ ok: false, message: err.message });
   }

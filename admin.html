@@ -608,6 +608,243 @@
         grid-template-columns: 1fr !important;
       }
     }
+  
+    /* ============================================================ */
+    /* QUẢN LÝ ẢNH SHOWROOM VIP (GALLERY MANAGEMENT) */
+    /* ============================================================ */
+    .admin-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 18px;
+    }
+
+    .admin-gallery-card {
+      background: rgba(18, 22, 34, 0.95);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.25s ease;
+      position: relative;
+      cursor: grab;
+    }
+
+    .admin-gallery-card:hover {
+      border-color: rgba(139, 92, 246, 0.45);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .admin-gallery-card:active {
+      cursor: grabbing;
+    }
+
+    .admin-gallery-card.dragging {
+      opacity: 0.35;
+      border: 2px dashed var(--gold);
+      transform: scale(0.97);
+    }
+
+    .admin-gallery-card.drag-over {
+      border: 2px solid #38BDF8 !important;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+      transform: scale(1.02);
+    }
+
+    .admin-gallery-thumb-wrap {
+      position: relative;
+      width: 100%;
+      height: 290px;
+      background: #090B10;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .admin-gallery-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .admin-gallery-card:hover .admin-gallery-thumb {
+      transform: scale(1.03);
+    }
+
+    .admin-gallery-order-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(6px);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 11.5px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 99px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      z-index: 2;
+    }
+
+    .admin-gallery-order-badge.is-top {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+      color: #000;
+      border-color: #FDE68A;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.5);
+    }
+
+    .admin-gallery-body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .admin-gallery-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #A78BFA;
+      background: rgba(139, 92, 246, 0.15);
+      padding: 3px 8px;
+      border-radius: 6px;
+      width: fit-content;
+      margin-bottom: 6px;
+    }
+
+    .admin-gallery-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .admin-gallery-caption {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-bottom: 12px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 32px;
+      line-height: 1.4;
+    }
+
+    .admin-gallery-controls {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+
+    .admin-gallery-order-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .btn-gallery-order {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .btn-gallery-order:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #38BDF8;
+    }
+
+    .btn-gallery-order:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .btn-gallery-top {
+      flex: 1;
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: var(--gold);
+    }
+
+    .btn-gallery-top:hover:not(:disabled) {
+      background: var(--gold);
+      color: #000;
+      border-color: var(--gold);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+    }
+
+    .btn-gallery-top.is-active-top {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.25);
+      color: #F59E0B;
+      cursor: default;
+      opacity: 0.7;
+    }
+
+    .admin-gallery-pos-select {
+      background: #090B10;
+      border: 1px solid var(--border);
+      color: #38BDF8;
+      padding: 5px 8px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .admin-gallery-pos-select:hover {
+      border-color: #38BDF8;
+    }
+
+    .admin-gallery-del-btn {
+      width: 100%;
+      padding: 7px 10px;
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #F87171;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .admin-gallery-del-btn:hover {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: #EF4444;
+      color: #fff;
+    }
+
   </style>
   <script src="js/security-shield.js"></script>
 </head>
@@ -1147,6 +1384,20 @@
             placeholder="Ví dụ: Chụp ảnh 4 khung hình cute phong cách Y2K Hàn Quốc">
         </div>
 
+                <div class="form-group" style="margin-bottom: 20px;">
+          <label class="form-label" style="color: var(--gold);"><i class="fa-solid fa-arrows-up-down"></i> Vị trí hiển thị trong Showroom:</label>
+          <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap; background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border);">
+            <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; color: #fff; font-size: 13.5px;">
+              <input type="radio" name="new-gallery-position" value="top" checked style="accent-color: var(--gold); width: 17px; height: 17px;">
+              <span><b style="color: var(--gold);">⭐ Đặt lên đầu tiên (#1)</b> (Ưu tiên khách thấy ảnh này ngay khi vừa mở trang)</span>
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-sub); font-size: 13.5px;">
+              <input type="radio" name="new-gallery-position" value="bottom" style="accent-color: var(--gold); width: 17px; height: 17px;">
+              <span>Thêm vào cuối danh sách</span>
+            </label>
+          </div>
+        </div>
+
         <button type="button" class="btn-save"
           style="background: linear-gradient(135deg, #8B5CF6, #6D28D9); color: #fff; width: auto; padding: 12px 28px;"
           onclick="submitNewGalleryItem()">
@@ -1167,6 +1418,12 @@
           </button>
         </div>
 
+                <div style="background: rgba(139, 92, 246, 0.08); border: 1px dashed rgba(139, 92, 246, 0.35); border-radius: 14px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+          <div style="font-size: 13px; color: #CBD5E1; line-height: 1.6;">
+            💡 <b style="color: #fff;">Tùy chỉnh thứ tự hiển thị:</b> Bấm nút <b style="color: var(--gold);"><i class="fa-solid fa-star"></i> Lên Đầu</b> để đưa ảnh ra vị trí đầu tiên cho khách xem, dùng mũi tên <b style="color: #38BDF8;">⬆️ / ⬇️</b> để dịch chuyển từng nấc, hoặc chọn trực tiếp vị trí <b style="color: #A78BFA;">#1, #2, #3...</b> / <b>kéo thả</b> thẻ ảnh vào vị trí mong muốn. Hệ thống sẽ tự động lưu ngay lập tức!
+          </div>
+        </div>
+
         <div id="admin-gallery-grid" class="admin-gallery-grid">
           <!-- Rendered dynamically by admin.js -->
         </div>
